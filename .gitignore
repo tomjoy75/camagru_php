@@ -1,0 +1,19 @@
+# ===== 42 project files not to commit =====
+camagru.pdf
+ARCHITECT.md
+
+# ===== system =====
+.DS_Store
+Thumbs.db
+
+# ===== logs =====
+*.log
+
+# ===== env =====
+.env
+
+# ===== docker (optionnel selon usage) =====
+docker-compose.override.yml
+
+# ===== vendor if using composer later =====
+vendor/
