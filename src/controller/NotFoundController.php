@@ -1,6 +1,7 @@
 <?php
 /**
  * Handles unmatched routes: sends 404 response.
+ * Logic here; display is in views/not_found.php.
  */
 
 class NotFoundController
@@ -9,7 +10,6 @@ class NotFoundController
     {
         http_response_code(404);
         header('Content-Type: text/html; charset=utf-8');
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>404</title></head>';
-        echo '<body style="background:#fff;color:#000;"><p>Not found</p></body></html>';
+        require __DIR__ . '/../views/not_found.php';
     }
 }
