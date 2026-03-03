@@ -1,0 +1,13 @@
+Project context:
+
+This repository implements the Camagru project from the 42 school curriculum.
+
+The goal is to build a small web application that allows users to capture or upload images and combine them with predefined overlays.
+
+Technologies used:
+- PHP (standard library only)
+- HTML
+- CSS
+- Vanilla JavaScript
+
+External frameworks and libraries are not allowed.

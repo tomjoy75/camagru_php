@@ -1,0 +1,17 @@
+Security rules:
+
+Escape all user-provided content in views using htmlspecialchars.
+
+Passwords must be hashed using password_hash.
+
+Never store plain text passwords.
+
+Validate all user input server-side.
+
+Use prepared statements for all SQL queries.
+
+Reject uploads that are not valid image files.
+
+Never trust data coming from superglobals ($_GET, $_POST, $_FILES, etc).
+
+Always validate input before use.

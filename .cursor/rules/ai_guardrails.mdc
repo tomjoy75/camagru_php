@@ -1,0 +1,12 @@
+Avoid overengineering.
+
+Prefer modifying existing code over introducing new abstractions.
+
+Keep changes minimal and localized.
+
+Avoid large refactors unless explicitly requested.
+
+When modifying code:
+- explain the reasoning before proposing changes
+- keep modifications minimal
+- avoid rewriting entire files when a small change is sufficient

@@ -1,0 +1,25 @@
+Architecture rules:
+
+The application follows a minimal MVC architecture.
+
+Responsibilities:
+
+Controllers
+- Handle HTTP request data.
+- Call services for business logic.
+- Select the view to render.
+
+Services
+- Contain business logic.
+- Must not generate HTML.
+
+Views
+- Generate HTML only.
+- Must not access the database.
+
+Routing
+- Maps HTTP paths to controller actions.
+
+Layout
+- Responsible for rendering the page structure.
+- Controllers pass logical view names only.

@@ -1,0 +1,17 @@
+Applies to: **/*.php
+
+PHP constraints:
+
+Use PHP standard library only.
+
+Do not introduce:
+- PHP frameworks
+- templating engines
+- ORMs
+- dependency injection frameworks
+
+Prefer simple PHP constructs:
+- require / include
+- plain classes and functions
+
+Keep architecture minimal and explicit.
