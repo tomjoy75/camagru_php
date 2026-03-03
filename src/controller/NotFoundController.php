@@ -10,6 +10,7 @@ class NotFoundController
     {
         http_response_code(404);
         header('Content-Type: text/html; charset=utf-8');
-        require __DIR__ . '/../views/not_found.php';
+        $view = 'not_found.php';
+        require __DIR__ . '/../views/layout.php';
     }
 }

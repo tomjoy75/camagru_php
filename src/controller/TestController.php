@@ -13,6 +13,7 @@ class TestController
         $message = TestService::getMessage($rawMessage);
 
         header('Content-Type: text/html; charset=utf-8');
-        require __DIR__ . '/../views/test.php';
+        $view = 'test.php';
+        require __DIR__ . '/../views/layout.php';
     }
 }
