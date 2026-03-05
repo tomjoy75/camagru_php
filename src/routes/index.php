@@ -10,6 +10,10 @@ $path = rtrim($path, '/') ?: '/';
 if ($path === '/test') {
     require __DIR__ . '/../controller/TestController.php';
     TestController::handle();
+}
+else if ($path === '/test-db') {
+    require __DIR__ . '/../controller/TestDbController.php';
+    TestDbController::handle();
 } else {
     require __DIR__ . '/../controller/NotFoundController.php';
     NotFoundController::handle();
