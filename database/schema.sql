@@ -1,26 +1,26 @@
--- MySQL / MariaDB schema for Camagru (minimal)
+-- SQLite schema for Camagru (minimal)
 
 CREATE TABLE users (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    notifications_enabled TINYINT(1) NOT NULL DEFAULT 1,
+    notifications_enabled INTEGER NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE images (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     image_path VARCHAR(512) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE comments (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    image_id INT UNSIGNED NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    image_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -28,11 +28,11 @@ CREATE TABLE comments (
 );
 
 CREATE TABLE likes (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    image_id INT UNSIGNED NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    image_id INTEGER NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_user_image (user_id, image_id),
+    UNIQUE(user_id, image_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE
 );
