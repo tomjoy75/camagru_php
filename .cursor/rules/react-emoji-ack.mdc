@@ -1,0 +1,13 @@
+---
+description: When working on React files, the assistant acknowledges this rule with specific emojis.
+globs: **/*.{jsx,tsx}
+alwaysApply: false
+---
+
+# React Files Emoji Acknowledgment
+
+When working with React files (matching `**/*.{jsx,tsx}`), the assistant should:
+
+- At the start of the **first** relevant response in a session, print these emojis together to acknowledge this rule was read: 🧠⚡📦
+- Avoid repeating the emojis unnecessarily in subsequent messages unless the user explicitly requests them again.
+

@@ -1,4 +1,8 @@
-Applies to: **/*.php
+---
+description: PHP-only constraints (no frameworks, no ORMs, no templating engines)
+globs: **/*.php
+alwaysApply: false
+---
 
 PHP constraints:
 

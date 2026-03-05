@@ -1,3 +1,8 @@
+---
+description: General AI behavior guardrails — avoid overengineering, keep changes minimal
+alwaysApply: true
+---
+
 Avoid overengineering.
 
 Prefer modifying existing code over introducing new abstractions.

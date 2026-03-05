@@ -1,3 +1,8 @@
+---
+description: MVC architecture conventions for the project
+alwaysApply: true
+---
+
 Architecture rules:
 
 The application follows a minimal MVC architecture.

@@ -1,3 +1,9 @@
+---
+description: PHP security rules — escaping, hashing, prepared statements, input validation
+globs: **/*.php
+alwaysApply: false
+---
+
 Security rules:
 
 Escape all user-provided content in views using htmlspecialchars.
