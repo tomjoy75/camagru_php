@@ -52,6 +52,17 @@ class AuthService
             $errors['confirm_password'] = 'Passwords do not match.';
         }
 
+        if ($errors === []) {
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            require_once __DIR__ . '/../repository/UserRepository.php';
+            $repo = new UserRepository();
+            try {
+                $repo->createUser($email, $username, $passwordHash);
+            } catch (PDOException $e) {
+                $errors['form'] = 'Registration failed. Please try again.';
+            }
+        }
+
         return $errors;
     }
 }
