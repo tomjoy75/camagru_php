@@ -14,4 +14,17 @@ class UserRepository
         $row = $stmt->fetch();
         return $row ?: null;
     }
+
+    public function createUser(string $email, string $username, string $passwordHash): int
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('INSERT INTO users (email, username, password_hash) VALUES (:email, :username, :password_hash)');
+        $stmt->execute([
+            ':email' => $email,
+            ':username' => $username,
+            ':password_hash' => $passwordHash,
+        ]);
+        return (int) $pdo->lastInsertId();
+    }
 }
