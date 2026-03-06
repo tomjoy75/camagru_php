@@ -8,6 +8,9 @@ class AuthController
     public static function showRegisterForm(): void
     {
         header('Content-Type: text/html; charset=utf-8');
+        $errors = [];
+        $email = '';
+        $username = '';
         $view = 'register.php';
         require __DIR__ . '/../views/layout.php';
     }
@@ -28,6 +31,14 @@ class AuthController
             $passwordConfirmation
         );
 
-        // No view rendering yet; handled in a later step.
+        if ($errors !== []) {
+            header('Content-Type: text/html; charset=utf-8');
+            $view = 'register.php';
+            require __DIR__ . '/../views/layout.php';
+            return;
+        }
+
+        header('Location: /');
+        exit;
     }
 }
