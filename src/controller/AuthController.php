@@ -14,5 +14,20 @@ class AuthController
 
     public static function register(): void
     {
+        require __DIR__ . '/../service/AuthService.php';
+
+        $email = $_POST['email'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $passwordConfirmation = $_POST['confirm_password'] ?? '';
+
+        $errors = AuthService::register(
+            $email,
+            $username,
+            $password,
+            $passwordConfirmation
+        );
+
+        // No view rendering yet; handled in a later step.
     }
 }
