@@ -65,4 +65,26 @@ class AuthService
 
         return $errors;
     }
+
+    /**
+     * Validates credentials. Returns ['errors' => array, 'user' => array|null].
+     * On success: errors empty, user set. On failure: errors set, user null.
+     */
+    public static function login(string $email, string $password): array
+    {
+        $errors = [];
+        $email = trim($email);
+        if ($email === '') {
+            $errors['form'] = 'Email is required.';
+            return ['errors' => $errors, 'user' => null];
+        }
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        $user = $repo->findByEmail($email);
+        if ($user === null || !password_verify($password, $user['password_hash'])) {
+            $errors['form'] = 'Invalid email or password.';
+            return ['errors' => $errors, 'user' => null];
+        }
+        return ['errors' => [], 'user' => $user];
+    }
 }

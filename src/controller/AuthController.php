@@ -18,8 +18,42 @@ class AuthController
     public static function showLoginForm(): void
     {
         header('Content-Type: text/html; charset=utf-8');
+        $errors = [];
+        $email = '';
         $view = 'login.php';
         require __DIR__ . '/../views/layout.php';
+    }
+
+    public static function login(): void
+    {
+        require __DIR__ . '/../service/AuthService.php';
+
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+
+        $result = AuthService::login($email, $password);
+
+        if ($result['errors'] === []) {
+            self::sessionStart();
+            $_SESSION['user_id'] = $result['user']['id'];
+            header('Location: /');
+            // Testing: Display a JS alert before redirect
+            // header('Content-Type: text/html; charset=utf-8');
+            // echo '<script>alert("User is logged in!"); window.location.href = "/";</script>';
+            exit;
+        }
+
+        header('Content-Type: text/html; charset=utf-8');
+        $errors = $result['errors'];
+        $view = 'login.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
+    private static function sessionStart(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
     }
 
     public static function register(): void
@@ -45,7 +79,7 @@ class AuthController
             return;
         }
 
-        header('Location: /');
+        header('Location: /login');
         exit;
     }
 }

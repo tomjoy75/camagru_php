@@ -22,6 +22,9 @@ if ($path === '/test') {
 } else if ($path === '/login' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/AuthController.php';
     AuthController::showLoginForm();
+} else if ($path === '/login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/AuthController.php';
+    AuthController::login();
 } else {
     require __DIR__ . '/../controller/NotFoundController.php';
     NotFoundController::handle();
