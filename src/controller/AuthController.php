@@ -15,6 +15,13 @@ class AuthController
         require __DIR__ . '/../views/layout.php';
     }
 
+    public static function showLoginForm(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $view = 'login.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
     public static function register(): void
     {
         require __DIR__ . '/../service/AuthService.php';
