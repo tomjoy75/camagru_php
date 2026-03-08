@@ -56,6 +56,14 @@ class AuthController
         }
     }
 
+    public static function logout(): void
+    {
+        self::sessionStart();
+        session_destroy();
+        header('Location: /login');
+        exit;
+    }
+
     public static function register(): void
     {
         require __DIR__ . '/../service/AuthService.php';

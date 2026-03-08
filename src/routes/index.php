@@ -25,6 +25,9 @@ if ($path === '/test') {
 } else if ($path === '/login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/AuthController.php';
     AuthController::login();
+} else if ($path === '/logout') {
+    require __DIR__ . '/../controller/AuthController.php';
+    AuthController::logout();
 } else {
     require __DIR__ . '/../controller/NotFoundController.php';
     NotFoundController::handle();
