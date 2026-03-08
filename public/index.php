@@ -5,4 +5,8 @@
  * Server (PHP built-in now, Nginx later) sends all requests here.
  */
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require __DIR__ . '/../src/routes/index.php';

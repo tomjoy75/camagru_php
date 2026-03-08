@@ -34,7 +34,6 @@ class AuthController
         $result = AuthService::login($email, $password);
 
         if ($result['errors'] === []) {
-            self::sessionStart();
             $_SESSION['user_id'] = $result['user']['id'];
             header('Location: /');
             // Testing: Display a JS alert before redirect
@@ -49,16 +48,8 @@ class AuthController
         require __DIR__ . '/../views/layout.php';
     }
 
-    private static function sessionStart(): void
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-    }
-
     public static function logout(): void
     {
-        self::sessionStart();
         session_destroy();
         header('Location: /login');
         exit;
