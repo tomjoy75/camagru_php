@@ -28,6 +28,9 @@ if ($path === '/test') {
 } else if ($path === '/logout') {
     require __DIR__ . '/../controller/AuthController.php';
     AuthController::logout();
+} else if ($path === '/editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/EditorController.php';
+    EditorController::show();
 } else {
     require __DIR__ . '/../controller/NotFoundController.php';
     NotFoundController::handle();
