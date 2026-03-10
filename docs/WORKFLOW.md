@@ -238,6 +238,18 @@ Append the result in the same file (docs/specs/`<feature_name>`.md) under a new 
 
 ------------------------------------------------------------------------
 
+NB.
+Before implementing a step, make sure you understand what it does.
+
+If unclear, ask the AI to explain the step before coding.
+
+Example prompt:
+
+Explain step <n> of the implementation plan in simple terms
+without writing code.
+
+------------------------------------------------------------------------
+
 # 8. Implementation Loop
 
 Workflow for each step:
