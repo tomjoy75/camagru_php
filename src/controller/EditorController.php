@@ -21,6 +21,11 @@ class EditorController
 
     public static function upload(): void
     {
-        // Step 1: route only; logic in later steps.
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+
+        // Upload logic will be implemented in later steps.
     }
 }
