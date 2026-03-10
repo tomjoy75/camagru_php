@@ -31,6 +31,22 @@ if ($path === '/test') {
 } else if ($path === '/editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::show();
+} else if (strpos($path, '/stickers/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $name = basename(substr($path, strlen('/stickers/')));
+    if ($name === '' || pathinfo($name, PATHINFO_EXTENSION) !== 'png') {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    $file = __DIR__ . '/../../public/stickers/' . $name;
+    if (!is_file($file)) {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    header('Content-Type: image/png');
+    readfile($file);
+    exit;
 } else {
     require __DIR__ . '/../controller/NotFoundController.php';
     NotFoundController::handle();
