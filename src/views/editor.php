@@ -9,16 +9,15 @@
         <div class="bg-slate-100 rounded-lg border border-slate-200 p-4">
             <p class="text-sm font-medium text-slate-600 mb-2">Stickers</p>
             <div class="flex flex-wrap gap-3">
-                <?php
-                $stickersDir = __DIR__ . '/../../public/stickers';
-                $stickers = glob($stickersDir . '/*.png') ?: [];
-                sort($stickers);
-                foreach ($stickers as $path):
-                    $name = basename($path);
-                    $slug = pathinfo($name, PATHINFO_FILENAME);
-                ?>
+                <?php $stickers = $stickers ?? []; ?>
+                <?php foreach ($stickers as $sticker): ?>
                     <span class="inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0">
-                        <img src="/stickers/<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($slug, ENT_QUOTES, 'UTF-8'); ?>" class="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer" title="<?php echo htmlspecialchars($slug, ENT_QUOTES, 'UTF-8'); ?>">
+                        <img
+                            src="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                            alt="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                            title="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                            class="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer"
+                        >
                     </span>
                 <?php endforeach; ?>
             </div>

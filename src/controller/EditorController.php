@@ -11,6 +11,9 @@ class EditorController
             exit;
         }
 
+        require __DIR__ . '/../service/StickerService.php';
+        $stickers = StickerService::getStickers();
+
         header('Content-Type: text/html; charset=utf-8');
         $view = 'editor.php';
         require __DIR__ . '/../views/layout.php';
