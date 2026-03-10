@@ -199,11 +199,11 @@ Create a spec file for the feature.
 
 ## File
 
-docs/specs/`<feature_name>`{=html}.md
+docs/specs/`<feature_name>`.md
 
 ## Template
 
-# Feature: `<name>`{=html}
+# Feature: `<name>`
 
 Goal Describe the objective.
 
@@ -217,7 +217,13 @@ Success Criteria How we know the feature works.
 
 # 7. Implementation Plan
 
-Break the feature into **small steps**.
+Read docs/specs/<feature_name>.md
+Break the feature into **small implementation steps**.
+
+Rules:
+- Each step should be **small and idependently testable**.
+- the plan should contain between 3 and 7 steps
+- avoid explanations, only list steps
 
 Example:
 
@@ -227,7 +233,8 @@ Example:
 4 store data\
 5 return response
 
-Each step should be **small and testable**.
+Append the result in the same file (docs/specs/`<feature_name>`.md) under a new section titled:
+ "## Implementation Plan"
 
 ------------------------------------------------------------------------
 
