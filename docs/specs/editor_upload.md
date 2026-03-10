@@ -37,3 +37,20 @@ Existing StickerService is not required for this unit (keeps the unit independen
 4. In `upload()`: call service; on success store temp filename in session and redirect to `/editor`; on error set `$errors['upload']` and re-render editor view
 5. In `editor.php`: wrap upload control in form `POST /editor/upload`, `enctype="multipart/form-data"`, input `name="base_image"`
 6. In `editor.php`: display `$errors['upload']` when set
+
+## Tests
+
+**Success**
+- Logged-in user POSTs valid PNG → 302 to `/editor`, `$_SESSION['editor_temp_image']` set, file in `public/tmp/`
+- Logged-in user POSTs valid JPEG → same
+
+**Failure**
+- POST `/editor/upload` without session → 302 to `/login`
+- No file in request → editor re-rendered with `$errors['upload']`
+- Non-image file (e.g. .txt, .pdf) → editor re-rendered with error
+- File over max size → editor re-rendered with error
+- Corrupt or fake image (getimagesize fails) → editor re-rendered with error
+
+**Edge**
+- Empty file (0 bytes) → error
+- Valid image with unexpected MIME in `$_FILES` → validation via getimagesize / content, accept if content is valid image

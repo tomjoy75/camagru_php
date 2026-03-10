@@ -264,6 +264,7 @@ feat(editor): add upload endpoint
 
 # 9. Testing
 
+Read docs/specs/<feature_name>.md 
 Generate tests before implementing features.
 
 ## Prompt
@@ -274,6 +275,8 @@ Include:
 - success cases 
 - failure cases 
 - edge cases
+
+Keep the output concise.
 
 ------------------------------------------------------------------------
 

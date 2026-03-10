@@ -18,4 +18,9 @@ class EditorController
         $view = 'editor.php';
         require __DIR__ . '/../views/layout.php';
     }
+
+    public static function upload(): void
+    {
+        // Step 1: route only; logic in later steps.
+    }
 }

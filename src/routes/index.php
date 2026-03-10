@@ -31,6 +31,9 @@ if ($path === '/test') {
 } else if ($path === '/editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::show();
+} else if ($path === '/editor/upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/EditorController.php';
+    EditorController::upload();
 } else if (strpos($path, '/stickers/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $name = basename(substr($path, strlen('/stickers/')));
     if ($name === '' || pathinfo($name, PATHINFO_EXTENSION) !== 'png') {
