@@ -28,3 +28,12 @@ Services:
 
 New ImageUploadService (name up to you), responsible only for validating and moving the uploaded image file.
 Existing StickerService is not required for this unit (keeps the unit independent and minimal).
+
+## Implementation Plan
+
+1. Add route `POST /editor/upload` → `EditorController::upload()`
+2. In `upload()`: require auth; redirect to `/login` if not logged in
+3. Create `ImageUploadService`: validate file (presence, size, MIME, getimagesize); move to `public/tmp/` with unique filename; return filename or errors
+4. In `upload()`: call service; on success store temp filename in session and redirect to `/editor`; on error set `$errors['upload']` and re-render editor view
+5. In `editor.php`: wrap upload control in form `POST /editor/upload`, `enctype="multipart/form-data"`, input `name="base_image"`
+6. In `editor.php`: display `$errors['upload']` when set
