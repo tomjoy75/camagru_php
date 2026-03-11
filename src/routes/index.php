@@ -37,6 +37,24 @@ if ($path === '/test') {
 } else if ($path === '/editor/upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::upload();
+} else if (strpos($path, '/tmp/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $name = basename(substr($path, strlen('/tmp/')));
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    $allowed = ['png', 'jpg', 'jpeg'];
+    if ($name === '' || !in_array($ext, $allowed, true)) {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    $file = __DIR__ . '/../../public/tmp/' . $name;
+    if (!is_file($file)) {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    header('Content-Type: ' . ($ext === 'png' ? 'image/png' : 'image/jpeg'));
+    readfile($file);
+    exit;
 } else if (strpos($path, '/stickers/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $name = basename(substr($path, strlen('/stickers/')));
     if ($name === '' || pathinfo($name, PATHINFO_EXTENSION) !== 'png') {
