@@ -3,7 +3,10 @@
  * Router: matches request path and calls the right controller.
  * Does not send the response; controllers do.
  */
-
+// var_dump($_SERVER['REQUEST_METHOD']);
+// exit;
+// var_dump($_SERVER['REQUEST_URI']);
+// exit;
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = rtrim($path, '/') ?: '/';
 

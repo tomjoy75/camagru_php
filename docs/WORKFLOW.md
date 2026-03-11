@@ -273,22 +273,22 @@ Explain step <n> of the implementation plan in simple terms without writing code
 
 Workflow for each step:
 
-Feature Spec  
-↓  
-Implementation Plan  
-↓  
-Understand Steps  
-↓  
-Generate Test Cases  
-↓  
-Create Issue + Branch  
-↓  
-Implement steps (commit per step)  
-↓  
-Run tests  
-↓  
-Fix if needed  
-↓  
+Feature Spec/
+↓/
+Implementation Plan/
+↓/
+Understand Steps/
+↓/
+Generate Test Cases/
+↓/
+Create Issue + Branch
+↓/
+Implement steps (commit per step)/
+↓/
+Run tests/
+↓/
+Fix if needed/
+↓/
 Close issue & merge
 
 Recommended git workflow:
