@@ -21,6 +21,7 @@ Before starting implementation, gather the core context.
 ## Suggested folder structure
 
 docs/ \
+├── subject.txt \
 ├── WORKFLOW.md \
 ├── product_spec.md \
 ├── architecture.md \
@@ -33,15 +34,18 @@ docs/ \
 
 Describe **what the product is supposed to do** at a high level.
 
-## Prompt
+### AI Prompt
 
+```
 Read the project subject @subject.txt.
 
-Write a product specification including: 
-- project goal 
-- core features 
-- user flows 
+Write a product specification including:
+
+- project goal
+- core features
+- user flows
 - constraints
+```
 
 ## Output
 
@@ -74,16 +78,21 @@ Constraints
 
 Define **how the system will be built**.
 
-## Prompt
+(Adapt layers and components to your stack; the example below is a web/MVC case.)
 
+### AI Prompt
+
+```
 Read docs/product_spec.md.
 
-Propose a software architecture including: 
-- application layers 
-- controllers 
-- services 
-- repositories 
+Propose a software architecture including:
+
+- application layers
+- controllers
+- services
+- repositories
 - database structure
+```
 
 ## Output
 
@@ -123,26 +132,28 @@ Database Tables
 
 Break the product into **modules, features, and subfeatures**.
 
-## Prompt
+### AI Prompt
 
-Based on the current codebase and the project subject @subject.txt,
-generate a hierarchical feature tree.
+```
+Read docs/product_spec.md and docs/architecture.md. If a codebase already exists, consider it.
+Generate a hierarchical feature tree.
 
 Structure it like:
 
-Product\
-→ modules\
-→ features\
+Product
+→ modules
+→ features
 → subfeatures
 
 Optional focus:
 
--   authentication
--   editor
--   gallery
--   comments
--   likes
--   notifications
+- authentication
+- editor
+- gallery
+- comments
+- likes
+- notifications
+```
 
 ## Output
 
@@ -173,23 +184,25 @@ Camagru \
 
 Select the **next smallest logical unit** to implement.
 
-## Prompt
+### AI Prompt
 
+```
 Read docs/feature_tree.md and docs/architecture.md.
 
 Identify the next smallest logical and testable unit to implement.
 
-The unit must be: 
-- implementable in one development step 
-- testable independently 
+The unit must be:
+- implementable in one development step
+- testable independently
 - not dependent on multiple unfinished features
 
-Generate: 
-1. short feature specification 
+Generate:
+1. short feature specification
 2. minimal implementation plan
 3. controllers/services involved
 
 Do not write code.
+```
 
 ------------------------------------------------------------------------
 
@@ -217,36 +230,42 @@ Success Criteria How we know the feature works.
 
 # 7. Implementation Plan
 
-Read docs/specs/<feature_name>.md
-Break the feature into **small implementation steps**.
+Break the feature into **small implementation steps** and append the plan to the spec file.
+
+### AI Prompt
+
+```
+Read docs/specs/<feature_name>.md.
+
+Break the feature into small implementation steps.
 
 Rules:
-- Each step should be **small and idependently testable**.
-- the plan should contain between 3 and 7 steps
-- avoid explanations, only list steps
+- Each step should be small and independently testable.
+- The plan should contain between 3 and 7 steps.
+- Each step should require less than ~30 lines of code.
+- Avoid explanations; only list steps.
 
-Example:
+Append the result in the same file (docs/specs/<feature_name>.md) under a new section titled "## Implementation Plan".
+```
 
-1 create route\
-2 validate input\
-3 call service\
-4 store data\
+Example output format:
+
+1 create route
+2 validate input
+3 call service
+4 store data
 5 return response
-
-Append the result in the same file (docs/specs/`<feature_name>`.md) under a new section titled:
- "## Implementation Plan"
 
 ------------------------------------------------------------------------
 
-NB.
-Before implementing a step, make sure you understand what it does.
-
+NB. Before implementing a step, make sure you understand what it does.
 If unclear, ask the AI to explain the step before coding.
 
-Example prompt:
+### Example prompt (explain a step)
 
-Explain step <n> of the implementation plan in simple terms
-without writing code.
+```
+Explain step <n> of the implementation plan in simple terms without writing code.
+```
 
 ------------------------------------------------------------------------
 
@@ -254,19 +273,27 @@ without writing code.
 
 Workflow for each step:
 
-spec\
-↓\
-plan\
-↓\
-implement step\
-↓\
-test\
-↓\
-commit
+Feature Spec  
+↓  
+Implementation Plan  
+↓  
+Understand Steps  
+↓  
+Generate Test Cases  
+↓  
+Create Issue + Branch  
+↓  
+Implement steps (commit per step)  
+↓  
+Run tests  
+↓  
+Fix if needed  
+↓  
+Close issue & merge
 
 Recommended git workflow:
 
-git checkout -b feature/`<feature_name>`{=html}
+git checkout -b feature/<feature_name>
 
 Commit example:
 
@@ -274,24 +301,43 @@ feat(editor): add upload endpoint
 
 ------------------------------------------------------------------------
 
-# 9. Testing
+# 9. Test cases and Issue Creation
 
-Read docs/specs/<feature_name>.md 
-Generate tests before implementing features.
+## Generate Tests
 
-## Prompt
+### AI Prompt
 
-Generate tests for this feature.
+```
+Read docs/specs/<feature_name>.md.
 
-Include: 
-- success cases 
-- failure cases 
+Generate tests before implementing features. Generate tests for this feature.
+
+Include:
+- success cases
+- failure cases
 - edge cases
 
 Keep the output concise.
+```
+
+## Generate Github Issue
+
+### AI Prompt
+
+```
+Read docs/specs/<feature_name>.md.
+
+Generate a GitHub issue body for this feature.
+
+Include:
+- feature description
+- implementation plan as checkboxes
+- test cases as checkboxes
+```
+
+## Create branch
 
 ------------------------------------------------------------------------
-
 # 10. Iteration Cycle
 
 Repeat the cycle:
@@ -330,3 +376,36 @@ These documents serve as **AI context sources**.
 -   Repositories handle persistence
 -   Views render data only
 -   Architecture documents guide AI decisions
+
+Treat the implementation plan as the source of truth. If you need to change it, update the plan first (e.g. with AI), then implement. Do not redefine steps ad hoc during implementation.
+
+
+------------------------------------------------------------------------
+
+# Final workflow
+
+Product Spec\
+↓\
+Architecture\
+↓\
+Feature Tree\
+↓\
+Select Feature\
+↓\
+Feature Spec\
+↓\
+Implementation Plan\
+↓\
+Understand Steps\
+↓\
+Generate Test Cases\
+↓\
+Create Issue + Branch\
+↓\
+Implement Steps (commit per step)\
+↓\
+Run Tests\
+↓\
+Fix\
+↓\
+Close Issue
