@@ -13,6 +13,10 @@ class EditorController
 
         require __DIR__ . '/../service/StickerService.php';
         $stickers = StickerService::getStickers();
+        $editorTempImage = $_SESSION['editor_temp_image'] ?? null;
+        if ($editorTempImage === '') {
+            $editorTempImage = null;
+        }
 
         header('Content-Type: text/html; charset=utf-8');
         $view = 'editor.php';

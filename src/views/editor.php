@@ -1,8 +1,12 @@
 <div class="w-full grid grid-cols-1 lg:grid-cols-5 gap-6">
     <section class="lg:col-span-4 space-y-4">
-        <!-- Webcam preview placeholder -->
-        <div class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500">
-            <span>Webcam preview</span>
+        <!-- Preview: uploaded temp image or webcam placeholder -->
+        <div class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
+            <?php if (isset($editorTempImage) && $editorTempImage !== ''): ?>
+                <img src="/tmp/<?php echo htmlspecialchars($editorTempImage, ENT_QUOTES, 'UTF-8'); ?>" alt="Uploaded preview" class="max-w-full max-h-full w-auto h-auto object-contain">
+            <?php else: ?>
+                <span>Webcam preview</span>
+            <?php endif; ?>
         </div>
 
         <!-- Stickers -->
