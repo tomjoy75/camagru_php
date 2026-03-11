@@ -28,10 +28,13 @@
             <button type="button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
                 Capture
             </button>
-            <label class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer text-center">
-                <input type="file" accept="image/*" class="sr-only">
-                Upload image
-            </label>
+            <form method="post" action="/editor/upload" enctype="multipart/form-data" class="flex items-center">
+                <label class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer text-center">
+                    <input type="file" name="base_image" accept="image/*" class="sr-only">
+                    Upload image
+                </label>
+                <button type="submit" class="ml-2 rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">Upload</button>
+            </form>
         </div>
     </section>
 
