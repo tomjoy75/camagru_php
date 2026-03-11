@@ -40,17 +40,45 @@ Existing StickerService is not required for this unit (keeps the unit independen
 
 ## Tests
 
-**Success**
-- Logged-in user POSTs valid PNG → 302 to `/editor`, `$_SESSION['editor_temp_image']` set, file in `public/tmp/`
-- Logged-in user POSTs valid JPEG → same
+**Test cases**
 
-**Failure**
-- POST `/editor/upload` without session → 302 to `/login`
-- No file in request → editor re-rendered with `$errors['upload']`
-- Non-image file (e.g. .txt, .pdf) → editor re-rendered with error
-- File over max size → editor re-rendered with error
-- Corrupt or fake image (getimagesize fails) → editor re-rendered with error
+- **Success:** Logged-in user POSTs valid PNG → 302 to `/editor`, `$_SESSION['editor_temp_image']` set, file in `public/tmp/`. Same for valid JPEG.
+- **Failure:** POST `/editor/upload` without session → 302 to `/login`. No file → editor re-rendered with `$errors['upload']`. Non-image file → error. File over max size → error. Corrupt/fake image (getimagesize fails) → error.
+- **Edge:** Empty file (0 bytes) → error. Valid image with wrong MIME → accept if getimagesize succeeds.
 
-**Edge**
-- Empty file (0 bytes) → error
-- Valid image with unexpected MIME in `$_FILES` → validation via getimagesize / content, accept if content is valid image
+**Test Setup (authentication)**
+
+```bash
+BASE=http://localhost:8080
+
+# Register (create user for tests)
+curl -s -c cookies.txt -X POST "$BASE/register" \
+  -d "email=uploader@test.com&username=uploader&password=Secret123!&confirm_password=Secret123!"
+
+# Login (establish session)
+curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/login" \
+  -d "email=uploader@test.com&password=Secret123!"
+```
+
+**Execute tests**
+
+```bash
+BASE=http://localhost:8080
+
+# Success: valid PNG upload (run from project root; use existing sticker as sample image)
+curl -s -o /dev/null -w "%{http_code}" -b cookies.txt -X POST "$BASE/editor/upload" \
+  -F "base_image=@public/stickers/glasses.png"
+# Expect: 302, then GET /editor returns 200
+
+# Success: valid JPEG (if you have a .jpg in project, e.g. test.jpg)
+# curl -s -o /dev/null -w "%{http_code}" -b cookies.txt -X POST "$BASE/editor/upload" \
+#   -F "base_image=@path/to/test.jpg"
+
+# Failure: no session (no -b cookies.txt)
+curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/editor/upload" -F "base_image=@public/stickers/glasses.png"
+# Expect: 302 to /login
+
+# Failure: no file
+curl -s -b cookies.txt -X POST "$BASE/editor/upload"
+# Expect: 200 with editor page and upload error message
+```
