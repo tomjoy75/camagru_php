@@ -37,6 +37,9 @@ if ($path === '/test') {
 } else if ($path === '/editor/upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::upload();
+} else if ($path === '/editor/compose' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/EditorController.php';
+    EditorController::compose();
 } else if (strpos($path, '/tmp/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $name = basename(substr($path, strlen('/tmp/')));
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));

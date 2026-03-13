@@ -15,16 +15,24 @@
             <div class="flex flex-wrap gap-3">
                 <?php $stickers = $stickers ?? []; ?>
                 <?php foreach ($stickers as $sticker): ?>
-                    <span class="inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0">
-                        <img
-                            src="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
-                            alt="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
-                            title="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
-                            class="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer"
-                        >
-                    </span>
+                    <form method="post" action="/editor/compose" class="inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0">
+                        <input type="hidden" name="sticker" value="<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="x" value="50">
+                        <input type="hidden" name="y" value="50">
+                        <button type="submit" class="w-full h-full flex items-center justify-center">
+                            <img
+                                src="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                                alt="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                                title="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                                class="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer"
+                            >
+                        </button>
+                    </form>
                 <?php endforeach; ?>
             </div>
+            <?php if (isset($errors['compose'])): ?>
+                <p class="mt-2 text-red-600 text-sm"><?php echo htmlspecialchars($errors['compose'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <?php endif; ?>
         </div>
 
         <!-- Capture and upload -->
