@@ -6,6 +6,9 @@ with AI assistance (Cursor, ChatGPT, etc.).
 Goals: - Maintain architectural clarity - Break the project into small
 testable units - Guide the AI with structured context
 
+**Stack-specific guidance** (e.g. web server, MVC, HTTP/curl tests):  
+`docs/WORKFLOW-addendum-web-server.md` — use together with this file when it applies.
+
 ------------------------------------------------------------------------
 
 # 1. Project Context
@@ -59,13 +62,10 @@ Goal \
 ... \
 Describe the objective of the application.
 
-Core Features 
-- authentication 
-- editor 
-- gallery 
-- comments 
-- likes 
-- notifications
+Core Features
+- area 1
+- area 2
+- area 3
 
 Constraints 
 - language 
@@ -76,55 +76,30 @@ Constraints
 
 # 3. Architecture Definition
 
-Define **how the system will be built**.
-
-(Adapt layers and components to your stack; the example below is a web/MVC case.)
+Define **how the system will be built** for **your** stack (CLI, mobile, web API, monolith, etc.).
 
 ### AI Prompt
 
 ```
 Read docs/product_spec.md.
 
-Propose a software architecture including:
+Propose a software architecture appropriate to this project, including:
 
-- application layers
-- controllers
-- services
-- repositories
-- database structure
+- major components or modules and their responsibilities
+- boundaries (what talks to what)
+- data or state (persistence, files, remote APIs) where relevant
+- how users or callers interact with the system (UI, CLI, HTTP, etc.)
+
+Adapt naming to the stack (e.g. handlers, packages, screens). Do not assume MVC unless the project uses it.
 ```
 
 ## Output
 
 docs/architecture.md
 
-## Example structure
+## Example
 
-# Architecture
-
-Pattern\
-MVC Monolith
-
-Controllers 
-- AuthController 
-- EditorController 
-- GalleryController
-
-Services 
-- AuthService 
-- ImageService 
-- NotificationService
-
-Repositories 
-- UserRepository 
-- ImageRepository 
-- CommentRepository
-
-Database Tables 
-- users 
-- images 
-- comments 
-- likes
+Keep examples in **architecture.md** aligned with the real stack. For a **web MVC-style** monolith, you can use the sample layout in `docs/WORKFLOW-addendum-web-server.md`.
 
 ------------------------------------------------------------------------
 
@@ -145,14 +120,11 @@ Product
 → features
 → subfeatures
 
-Optional focus:
+Optional focus (examples):
 
-- authentication
-- editor
-- gallery
-- comments
-- likes
-- notifications
+- onboarding or auth flows
+- primary user journeys
+- integrations or background work
 ```
 
 ## Output
@@ -161,22 +133,15 @@ docs/feature_tree.md
 
 ## Example
 
-Camagru \
+Product \
 │ \
-├── Authentication \
-│ ├── register \
-│ ├── login \
-│ └── logout \
-│ \
-├── Editor \
-│ ├── upload photo \
-│ ├── select sticker \
-│ ├── compose image \
-│ └── save image \
-│ ├── Gallery \
-│ ├── view images \
-│ ├── pagination \
-│ └── delete image
+├── Module A \
+│ ├── feature 1 \
+│ └── feature 2 \
+└── Module B \
+    └── feature 3
+
+(Replace with your real modules and features in **feature_tree.md**.)
 
 ------------------------------------------------------------------------
 
@@ -199,7 +164,7 @@ The unit must be:
 Generate:
 1. short feature specification
 2. minimal implementation plan
-3. controllers/services involved
+3. main components or modules involved (per architecture.md)
 
 Do not write code.
 ```
@@ -250,11 +215,13 @@ Append the result in the same file (docs/specs/<feature_name>.md) under a new se
 
 Example output format:
 
-1 create route
-2 validate input
-3 call service
-4 store data
-5 return response
+1 add entry point or wiring
+2 validate inputs
+3 implement core behavior
+4 persist or integrate side effects
+5 expose result (response, UI, exit code, etc.)
+
+(Web route–driven plans: see `docs/WORKFLOW-addendum-web-server.md`.)
 
 ------------------------------------------------------------------------
 
@@ -271,20 +238,20 @@ Explain step <n> of the implementation plan in simple terms without writing code
 
 # 7.5 Spec-driven implementation gate (AI)
 
-Before changing **application code** (PHP, routes, views, services, repositories, etc.):
+Before changing **application source code** (whatever that means in this repo: services, UI, handlers, etc.):
 
 1. **Discovery summary** — List files you plan to **read**, **modify**, and **create**, each with a one-line reason. If you are unsure, say so instead of guessing paths.
 
 2. **Artifacts** — In the same planning pass, ensure there is (or produce):
    - a **feature spec** in `docs/specs/<feature_name>.md` (goal, behavior, constraints, success criteria as in §6);
    - an **implementation plan** in that spec (§7);
-   - a **test plan** (success, failure, edge cases; curl block per §9 where applicable).
+   - a **test plan** (success, failure, edge cases) and **runnable checks** per §9 (e.g. scripts, unit tests, or — for HTTP projects — curl blocks described in the web addendum).
 
 3. **Confirmation** — **Do not edit application source files** until the user explicitly confirms (e.g. “go ahead”, “implement now”). If the user asked for documentation-only work, follow that scope. After confirmation, follow §8.
 
-4. **Scope** — Do not widen the feature (extra endpoints, refactors, dependencies) without **stating the widening explicitly** and getting user approval.
+4. **Scope** — Do not widen the feature (extra surfaces, refactors, dependencies) without **stating the widening explicitly** and getting user approval.
 
-5. **Architecture** — Stay within the minimal MVC split (controllers / services / repositories / views) and **Core Principles** below. Prefer the smallest change; avoid new abstractions unless clearly needed.
+5. **Architecture** — Follow **docs/architecture.md** and **Core Principles** below. Prefer the smallest change; avoid new abstractions unless clearly needed.
 
 6. **Post-feature cleanup (optional)** — When useful, add to the feature spec a short section:  
    `## Post-feature cleanup / tech debt`  
@@ -322,7 +289,7 @@ git checkout -b feature/<feature_name>
 
 Commit example:
 
-feat(editor): add upload endpoint
+feat(scope): short description of change
 
 ------------------------------------------------------------------------
 
@@ -332,7 +299,7 @@ feat(editor): add upload endpoint
 
 ### AI Prompt
 
-````
+`````
 Read docs/specs/<feature_name>.md.
 
 Generate tests before implementing features.
@@ -344,41 +311,25 @@ Include:
 
 Keep the test case list concise.
 
-After the test case list, automatically generate a bash code block containing curl commands that allow the developer to execute those tests.
+After the test case list, append **runnable verification** appropriate to the project, for example:
 
-The generated curl commands must:
-- be minimal and runnable from the project root
-- use multipart form data when files are required (e.g. -F "field=@path/to/file")
-- use realistic example values (emails, usernames, file paths)
-- define BASE=http://localhost:8080 for example once at the beginning of the bash blocks
-- include a short comment before each curl command describing the test
+- shell commands, a small script, **or** unit/integration test names and how to run them  
+- for **HTTP** features: `curl` bash blocks — use the full template and conventions in **`docs/WORKFLOW-addendum-web-server.md`** (§ Test plan — HTTP with curl)
 
-If the feature requires authentication:
-- generate a "Test Setup (authentication)" bash block first
-- remove any previous cookie file (rm -f cookies.txt)
-- include /register and /login requests
-- store cookies using -c cookies.txt
-- subsequent requests must reuse the session using -b cookies.txt
+The output structure should include:
 
-The output structure must be:
-
-**Test cases**
+**Test cases**  
 (list: success / failure / edge cases)
 
-**Test Setup (authentication)** [only if the feature requires auth]
+**Execute tests** (and setup blocks if needed)  
 ```bash
-# curl commands for register + login, -c cookies.txt
-```
-
-**Execute tests**
-```bash
-# curl commands 
+# or other runnable checks per stack
 ```
 
 Keep the output concise. Do not modify other sections of the spec file.
 
 Append the result in the same file (docs/specs/<feature_name>.md) under a new section titled "## Tests".
-````
+`````
 
 ## Generate Github Issue
 
@@ -435,13 +386,14 @@ These documents serve as **AI context sources**.
 # Core Principles
 
 -   Smallest testable unit first
--   Controllers remain thin
--   Business logic belongs in services
--   Repositories handle persistence
--   Views render data only
+-   Follow **docs/architecture.md** for this project’s layering and boundaries
+-   Keep orchestration at edges thin; keep domain or core logic cohesive and testable
+-   Isolate persistence and external I/O behind clear boundaries when the architecture calls for it
 -   Architecture documents guide AI decisions
 
 Treat the implementation plan as the source of truth. If you need to change it, update the plan first (e.g. with AI), then implement. Do not redefine steps ad hoc during implementation.
+
+For **web MVC-style** projects, also apply the profile in `docs/WORKFLOW-addendum-web-server.md` (Core Principles — MVC web profile).
 
 
 ------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 
 ## Gate — before writing any application code
 
-Use this (or equivalent) **first**. Do not edit PHP, routes, views, services, or repositories until the user confirms.
+Use this (or equivalent) **first**. Do not edit application source until the user confirms.
 
 ```
 You are implementing a feature. Do not modify application code yet.
@@ -16,17 +16,17 @@ You are implementing a feature. Do not modify application code yet.
 2. Produce or confirm in docs/specs/<feature_name>.md:
    - feature spec (goal, behavior, constraints, success criteria)
    - implementation plan (§7-style steps)
-   - test plan (success / failure / edge; curl block per WORKFLOW §9 if HTTP)
+   - test plan (success / failure / edge; runnable checks per WORKFLOW §9; for HTTP see docs/WORKFLOW-addendum-web-server.md)
 
 3. Stop and wait for explicit confirmation (e.g. "go ahead") before any code edits.
 
 4. Do not widen scope without stating it and getting approval.
 
-5. Stay minimal MVC; smallest change; no extra abstractions unless clearly needed.
+5. Follow docs/architecture.md and WORKFLOW Core Principles; smallest change; no extra abstractions unless clearly needed.
 
 6. Optional: add "## Post-feature cleanup / tech debt" to the spec when relevant.
 
-Full detail: docs/WORKFLOW.md §7.5
+Full detail: docs/WORKFLOW.md §7.5 — web/MVC/HTTP specifics: docs/WORKFLOW-addendum-web-server.md
 ```
 
 **After the user confirms**, use §7a–§7c below.
@@ -53,11 +53,13 @@ Append the result in the same file (docs/specs/<feature_name>.md) under a new se
 
 Example format:
 
-1. create route  
-2. validate input  
-3. call service  
-4. store data  
-5. return response  
+1. add entry point or wiring  
+2. validate inputs  
+3. implement core behavior  
+4. persist or side effects  
+5. expose result  
+
+(Web route–driven plans: `docs/WORKFLOW-addendum-web-server.md`.)
 
 ---
 
