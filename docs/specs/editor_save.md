@@ -40,3 +40,7 @@ curl -s -o /dev/null -w "%{http_code}" -b cookies.txt -X POST "$BASE/editor/save
 ```
 
 Without session: expect 302 to `/login`. Without temp file: expect 200 with save error on editor.
+## Post-feature cleanup (optional)
+
+- Reduce verbosity in EditorController
+- Replace extract(...) with explicit variable assignment if needed
