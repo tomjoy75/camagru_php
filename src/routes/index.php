@@ -40,6 +40,9 @@ if ($path === '/test') {
 } else if ($path === '/editor/compose' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::compose();
+} else if ($path === '/editor/save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/EditorController.php';
+    EditorController::save();
 } else if (strpos($path, '/tmp/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $name = basename(substr($path, strlen('/tmp/')));
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -50,6 +53,24 @@ if ($path === '/test') {
         exit;
     }
     $file = __DIR__ . '/../../public/tmp/' . $name;
+    if (!is_file($file)) {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    header('Content-Type: ' . ($ext === 'png' ? 'image/png' : 'image/jpeg'));
+    readfile($file);
+    exit;
+} else if (strpos($path, '/uploads/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $name = basename(substr($path, strlen('/uploads/')));
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    $allowed = ['png', 'jpg', 'jpeg'];
+    if ($name === '' || !in_array($ext, $allowed, true)) {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    $file = __DIR__ . '/../../public/uploads/' . $name;
     if (!is_file($file)) {
         require __DIR__ . '/../controller/NotFoundController.php';
         NotFoundController::handle();

@@ -2,8 +2,8 @@
     <section class="lg:col-span-4 space-y-4">
         <!-- Preview: uploaded temp image or webcam placeholder -->
         <div class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
-            <?php if (isset($editorTempImage) && $editorTempImage !== ''): ?>
-                <img src="/tmp/<?php echo htmlspecialchars($editorTempImage, ENT_QUOTES, 'UTF-8'); ?>" alt="Uploaded preview" class="max-w-full max-h-full w-auto h-auto object-contain">
+            <?php if (!empty($editorPreviewSrc)): ?>
+                <img src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>" alt="Uploaded preview" class="max-w-full max-h-full w-auto h-auto object-contain">
             <?php else: ?>
                 <span>Webcam preview</span>
             <?php endif; ?>
@@ -36,7 +36,7 @@
         </div>
 
         <!-- Capture and upload -->
-        <div class="flex flex-col sm:flex-row gap-3 items-start">
+        <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
             <button type="button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
                 Capture
             </button>
@@ -52,6 +52,16 @@
                     <button type="submit" class="ml-2 rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">Upload</button>
                 </div>
             </form>
+            <?php if (!empty($canSaveEditorImage)): ?>
+                <form method="post" action="/editor/save" class="flex flex-col gap-2">
+                    <?php if (isset($errors['save'])): ?>
+                        <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
+                    <?php endif; ?>
+                    <button type="submit" class="rounded bg-emerald-700 px-4 py-2 text-white font-medium hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">Save image</button>
+                </form>
+            <?php elseif (isset($errors['save'])): ?>
+                <p class="text-red-600 text-sm self-center"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -59,9 +69,20 @@
         <div class="bg-white border border-slate-200 rounded-lg p-4 sticky top-4">
             <p class="text-sm font-medium text-slate-600 mb-3">Previous images</p>
             <div class="grid grid-cols-2 lg:grid-cols-1 gap-2">
-                <div class="aspect-square bg-slate-200 rounded"></div>
-                <div class="aspect-square bg-slate-200 rounded"></div>
-                <div class="aspect-square bg-slate-200 rounded"></div>
+                <?php $savedImages = $savedImages ?? []; ?>
+                <?php if (count($savedImages) === 0): ?>
+                    <p class="text-slate-400 text-sm col-span-2 lg:col-span-1">No saved images yet.</p>
+                <?php else: ?>
+                    <?php foreach ($savedImages as $saved): ?>
+                        <?php
+                        $path = $saved['image_path'] ?? '';
+                        $src = ($path !== '' && $path[0] !== '/') ? '/' . $path : $path;
+                        ?>
+                        <a href="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>" class="aspect-square bg-slate-200 rounded overflow-hidden block border border-slate-200 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500">
+                            <img src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="w-full h-full object-cover">
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </aside>

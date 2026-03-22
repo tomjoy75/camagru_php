@@ -6,6 +6,8 @@ PROMPT.md
 Feature_devellopment_workflow.png
 cookies.txt
 public/tmp
+public/uploads/*
+!public/uploads/.gitkeep
 
 # ===== system =====
 .DS_Store
