@@ -269,7 +269,32 @@ Explain step <n> of the implementation plan in simple terms without writing code
 
 ------------------------------------------------------------------------
 
+# 7.5 Spec-driven implementation gate (AI)
+
+Before changing **application code** (PHP, routes, views, services, repositories, etc.):
+
+1. **Discovery summary** — List files you plan to **read**, **modify**, and **create**, each with a one-line reason. If you are unsure, say so instead of guessing paths.
+
+2. **Artifacts** — In the same planning pass, ensure there is (or produce):
+   - a **feature spec** in `docs/specs/<feature_name>.md` (goal, behavior, constraints, success criteria as in §6);
+   - an **implementation plan** in that spec (§7);
+   - a **test plan** (success, failure, edge cases; curl block per §9 where applicable).
+
+3. **Confirmation** — **Do not edit application source files** until the user explicitly confirms (e.g. “go ahead”, “implement now”). If the user asked for documentation-only work, follow that scope. After confirmation, follow §8.
+
+4. **Scope** — Do not widen the feature (extra endpoints, refactors, dependencies) without **stating the widening explicitly** and getting user approval.
+
+5. **Architecture** — Stay within the minimal MVC split (controllers / services / repositories / views) and **Core Principles** below. Prefer the smallest change; avoid new abstractions unless clearly needed.
+
+6. **Post-feature cleanup (optional)** — When useful, add to the feature spec a short section:  
+   `## Post-feature cleanup / tech debt`  
+   (bulleted follow-ups, known shortcuts only).
+
+------------------------------------------------------------------------
+
 # 8. Implementation Loop
+
+**Start coding only after §7.5 confirmation** (when the task includes application changes).
 
 Workflow for each step:
 
@@ -385,6 +410,10 @@ feature spec\
 ↓\
 implementation plan\
 ↓\
+test plan\
+↓\
+confirm (§7.5)\
+↓\
 code\
 ↓\
 tests
@@ -434,6 +463,8 @@ Implementation Plan\
 Understand Steps\
 ↓\
 Generate Test Cases\
+↓\
+User confirms implementation (§7.5 gate)\
 ↓\
 Create Issue + Branch\
 ↓\
