@@ -211,7 +211,6 @@ Rules:
 - Avoid explanations; only list steps.
 
 Append the result in the same file (docs/specs/<feature_name>.md) under a new section titled "## Implementation Plan".
-```
 
 Example output format:
 
@@ -222,14 +221,13 @@ Example output format:
 5 expose result (response, UI, exit code, etc.)
 
 (Web route–driven plans: see `docs/WORKFLOW-addendum-web-server.md`.)
-
+```
 ------------------------------------------------------------------------
 
 NB. Before implementing a step, make sure you understand what it does.
 If unclear, ask the AI to explain the step before coding.
 
 ### Example prompt (explain a step)
-
 ```
 Explain step <n> of the implementation plan in simple terms without writing code.
 ```
