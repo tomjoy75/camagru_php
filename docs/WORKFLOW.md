@@ -367,6 +367,8 @@ Do **not** write application code. Do **not** modify any files. Wait for my expl
 
 **Start coding only after §7.5 confirmation** (when the task includes application changes).
 
+After this high-level loop, the concrete execution flow is: §9 → §10 → §11.
+
 Workflow for each step:
 
 Feature Spec/
@@ -385,7 +387,7 @@ Run tests/
 ↓/
 Fix if needed/
 ↓/
-Close issue & merge
+Validate; update tracker; close issue; merge branch
 
 ## Active issue enrichment
 
@@ -521,7 +523,59 @@ Rules:
 
 ---
 
-# 10. Iteration Cycle
+# 10. Implement active feature
+
+The feature is ready to implement on the **active feature branch**. Use the **spec**, **implementation plan**, **test plan**, and **active tracker issue** as the execution references. Keep work inside the **agreed scope**; do not widen the feature without explicit approval.
+
+### AI Prompt
+
+```
+We are implementing the active feature (WORKFLOW §10).
+
+Read:
+- docs/specs/<feature_name>.md
+- docs/WORKFLOW.md
+- docs/WORKFLOW-addendum-web-server.md (sections that apply to this project; skip what does not apply)
+- docs/ARCHITECT.md
+- the active tracker issue for this feature (paste link, title/body, or export—whatever your session allows)
+
+Assumptions—confirm briefly; if any fail, stop and say what is missing:
+
+- Feature spec exists for this unit of work
+- Implementation plan exists in the spec
+- Test plan with runnable checks exists (§9)
+- Active tracker issue is already updated for implementation
+- Feature branch is created and checked out
+
+Phase A — do not change application code yet:
+
+1. Restate the implementation **scope** in a few lines (in scope / explicitly out of scope).
+2. List **files to modify** (path + one-line reason each).
+3. List **files to create** (path + one-line reason each).
+4. Wait for my explicit confirmation (e.g. “implement now”).
+
+Phase B — after I confirm: implement strictly within scope, following the plan and ARCHITECT.md / WORKFLOW Core Principles. Run the spec’s checks as you go; fix only within scope if something fails.
+```
+
+---
+
+# 11. Complete the feature
+
+When implementation and the **Run tests** / **Fix** loop are finished, **close the feature** in a controlled way:
+
+1. **Validate** — Check the work against the feature spec and the **test plan** (runnable checks from §9). Record **passed**, **failed**, and **deferred** items.
+2. **Update the active tracker issue** — Add a short validation summary (outcomes, deferrals).
+3. **Board status** — Set the item to **Done** (or your tool’s equivalent) when scope matches what was agreed; otherwise keep it in **Doing** / **Waiting** until it does.
+4. **Close the issue** — When your process says the unit of work is finished, **close** it in the tracker so lists stay accurate (many tools still show closed items on a **Done** column).
+5. **Commit** — Commit any remaining changes on the feature branch with clear messages.
+6. **Merge** — Merge into your main integration branch per your team’s rules.
+7. **Optional** — Capture deferred checks or light tech debt (e.g. a short note on the issue, in the spec, or a small **Post-feature cleanup** section in the spec if you use one).
+
+Then continue with **§12 Iteration Cycle** for the next unit of work.
+
+---
+
+# 12. Iteration Cycle
 
 Repeat the cycle:
 
@@ -543,7 +597,7 @@ tests
 
 ---
 
-# 11. Project Evolution
+# 13. Project Evolution
 
 As the project grows:
 
@@ -597,7 +651,7 @@ Run Tests
 ↓  
 Fix  
 ↓  
-Close Issue
+Validate; update tracker; close issue; merge branch
 
 ```
 
