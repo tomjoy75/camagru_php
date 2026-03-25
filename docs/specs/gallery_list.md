@@ -63,11 +63,11 @@ Auth module: **not** required for this feature’s read path.
 **Failure / safety**
 
 - **F1:** Invalid gallery URL (e.g. typo) → existing **404** behavior unchanged.
-- **F2:** DB error when listing → safe error handling without exposing SQL or paths (exact behavior: generic message or 500 per project convention — document choice at implementation).
+- **F2:** DB error when listing → safe error handling without exposing SQL or paths (exact behavior: generic message or 500 per project convention — document choice at implementation). **Implemented:** HTTP **200** with a short generic in-page message (no technical details).
 
 **Edge**
 
-- **E1:** Row exists but file missing on disk → broken image or skipped row; must not crash the page (pick one strategy in implementation, keep minimal).
+- **E1:** Row exists but file missing on disk → broken image or skipped row; must not crash the page (pick one strategy in implementation, keep minimal). **Implemented:** skip the row (no `<img>` for that entry); page stays **200**.
 
 ### Execute tests (curl)
 

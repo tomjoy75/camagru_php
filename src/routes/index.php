@@ -31,6 +31,9 @@ if ($path === '/test') {
 } else if ($path === '/logout') {
     require __DIR__ . '/../controller/AuthController.php';
     AuthController::logout();
+} else if ($path === '/gallery' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/GalleryController.php';
+    GalleryController::show();
 } else if ($path === '/editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::show();

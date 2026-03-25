@@ -31,4 +31,18 @@ class ImageRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows ?: [];
     }
+
+    /**
+     * All images for public gallery, newest first.
+     *
+     * @return list<array{id: int|string, image_path: string, created_at: string}>
+     */
+    public function findAllForPublicGallery(): array
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->query('SELECT id, image_path, created_at FROM images ORDER BY created_at DESC');
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $rows ?: [];
+    }
 }
