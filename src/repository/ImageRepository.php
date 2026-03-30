@@ -32,16 +32,30 @@ class ImageRepository
         return $rows ?: [];
     }
 
-    /**
-     * All images for public gallery, newest first.
-     *
-     * @return list<array{id: int|string, image_path: string, created_at: string}>
-     */
-    public function findAllForPublicGallery(): array
+    public function countForPublicGallery(): int
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $stmt = $pdo->query('SELECT id, image_path, created_at FROM images ORDER BY created_at DESC');
+        $stmt = $pdo->query('SELECT COUNT(*) FROM images');
+        $n = $stmt->fetchColumn();
+        return (int) $n;
+    }
+
+    /**
+     * One page of images for public gallery, newest first.
+     *
+     * @return list<array{id: int|string, image_path: string, created_at: string}>
+     */
+    public function findPageForPublicGallery(int $limit, int $offset): array
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'SELECT id, image_path, created_at FROM images ORDER BY created_at DESC LIMIT :limit OFFSET :offset'
+        );
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows ?: [];
     }

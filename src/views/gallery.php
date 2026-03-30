@@ -23,6 +23,34 @@
                     </div>
                 <?php endforeach; ?>
             </div>
+
+            <?php
+            $currentPage = isset($currentPage) ? (int) $currentPage : 1;
+            $totalPages = isset($totalPages) ? (int) $totalPages : 0;
+            ?>
+            <?php if ($totalPages > 1): ?>
+                <nav class="flex flex-wrap items-center gap-4 pt-4 text-sm" aria-label="Gallery pagination">
+                    <?php if ($currentPage > 1): ?>
+                        <a
+                            href="<?php echo htmlspecialchars('/gallery?page=' . ($currentPage - 1), ENT_QUOTES, 'UTF-8'); ?>"
+                            class="text-slate-700 underline hover:text-slate-900"
+                        >Previous</a>
+                    <?php else: ?>
+                        <span class="text-slate-400">Previous</span>
+                    <?php endif; ?>
+
+                    <span class="text-slate-600">Page <?php echo $currentPage; ?> of <?php echo $totalPages; ?></span>
+
+                    <?php if ($currentPage < $totalPages): ?>
+                        <a
+                            href="<?php echo htmlspecialchars('/gallery?page=' . ($currentPage + 1), ENT_QUOTES, 'UTF-8'); ?>"
+                            class="text-slate-700 underline hover:text-slate-900"
+                        >Next</a>
+                    <?php else: ?>
+                        <span class="text-slate-400">Next</span>
+                    <?php endif; ?>
+                </nav>
+            <?php endif; ?>
         <?php endif; ?>
     <?php endif; ?>
 </div>

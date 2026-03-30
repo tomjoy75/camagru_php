@@ -269,6 +269,7 @@ Do not write code.
 
 # 6. Feature Specification
 
+```
 Create a spec file for the feature.
 
 ## File
@@ -286,6 +287,7 @@ Behavior Describe expected behavior.
 Constraints Technical or security constraints.
 
 Success Criteria How we know the feature works.
+```
 
 ---
 
@@ -429,7 +431,7 @@ feat(scope): short description of change
 
 ### AI Prompt
 
-```
+````
 Read docs/specs/<feature_name>.md.
 
 Generate tests before implementing features.
@@ -459,7 +461,7 @@ The output structure should include:
 Keep the output concise. Do not modify other sections of the spec file.
 
 Append the result in the same file (docs/specs/.md) under a new section titled "## Tests".
-
+````
   
 ## Active issue update  
   

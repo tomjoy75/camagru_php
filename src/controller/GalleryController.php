@@ -4,25 +4,58 @@
  */
 class GalleryController
 {
+    private const PAGE_SIZE = 5;
+
     public static function show(): void
     {
         header('Content-Type: text/html; charset=utf-8');
 
         $galleryLoadError = false;
         $images = [];
+        $currentPage = 1;
+        $totalPages = 0;
+        $pageSize = self::PAGE_SIZE;
 
         try {
             require_once __DIR__ . '/../repository/ImageRepository.php';
             $repo = new ImageRepository();
-            $rows = $repo->findAllForPublicGallery();
-            $images = self::filterRowsWithExistingFiles($rows);
+            $currentPage = self::parseGalleryPage();
+            $totalCount = $repo->countForPublicGallery();
+
+            if ($totalCount === 0) {
+                $totalPages = 0;
+                $currentPage = 1;
+                $images = [];
+            } else {
+                $totalPages = (int) ceil($totalCount / self::PAGE_SIZE);
+                if ($currentPage > $totalPages) {
+                    $currentPage = $totalPages;
+                }
+                $offset = ($currentPage - 1) * self::PAGE_SIZE;
+                $rows = $repo->findPageForPublicGallery(self::PAGE_SIZE, $offset);
+                $images = self::filterRowsWithExistingFiles($rows);
+            }
         } catch (Throwable $e) {
             $galleryLoadError = true;
         }
 
-        extract(compact('images', 'galleryLoadError'), EXTR_SKIP);
+        extract(compact('images', 'galleryLoadError', 'currentPage', 'totalPages', 'pageSize'), EXTR_SKIP);
         $view = 'gallery.php';
         require __DIR__ . '/../views/layout.php';
+    }
+
+    private static function parseGalleryPage(): int
+    {
+        $raw = $_GET['page'] ?? null;
+        if ($raw === null || $raw === '') {
+            return 1;
+        }
+        $parsed = filter_var($raw, FILTER_VALIDATE_INT);
+        if ($parsed === false || $parsed < 1) {
+            return 1;
+        }
+
+        return $parsed;
     }
 
     /**
