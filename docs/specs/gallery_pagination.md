@@ -47,49 +47,61 @@ Keep the public gallery usable as the number of published images grows by showin
 
 **Success**
 
-- **S1:** `GET /gallery` (no query) → **200**, HTML; when images exist, shows first page only (at most `page_size` thumbnails after implementation); when none, empty state.
-- **S2:** `GET /gallery?page=1` → **200**, same effective content as S1 for a populated gallery.
-- **S3:** With more than `page_size` DB rows whose files exist under `public/`, `GET /gallery?page=2` → **200** and shows a **different** set of images than page 1 (no duplicates across 1 vs 2); prev/next (or equivalent) links appear when `totalPages > 1`.
+- **S1:** `GET /gallery` (no query) → **200**, HTML. **Checks:** response body contains `Gallery` heading; if the gallery is empty, body contains `No images published yet.`; if there are persisted images with files on disk, count thumbnails by counting occurrences of **`alt="Published image"`** in the HTML — expect **≤ 5** (current `page_size`).
+- **S2:** `GET /gallery?page=1` → **200**. **Check:** with unchanged DB and files, response body must be **byte-identical** to `GET /gallery` (e.g. `cmp` on two `curl -s` outputs from the same host).
+- **S3:** Requires **more than `page_size`** rows in `images` with files present under `public/` (same as today’s editor upload layout). **`GET /gallery?page=2`** → **200**. **Checks:** (a) `alt="Published image"` count on page 1 and on page 2 is each **≤ `page_size`**; (b) no duplicate `src="…"` values between page 1 and page 2 (extract `src="/uploads/…"` or full `src=` from each page, combine, `sort | uniq -d` must be **empty**); (c) response HTML includes pagination chrome (`aria-label="Gallery pagination"` or visible Previous/Next for `totalPages > 1`).
 
 **Failure**
 
-- **F1:** `GET /gallerie` or other unknown path → **404** (unchanged router behavior).
+- **F1:** `GET /gallerie` (or another unknown path) → **404** (unchanged router behavior).
+- **F2 (manual only):** With the app otherwise working, simulate a **DB connection failure** (e.g. wrong DSN, stopped DB, or temporary change in dev only — revert after). **`GET /gallery`** → **200**, body shows the generic load message (e.g. `could not be loaded` / project’s exact copy), **no** SQL message or stack trace in the HTML.
 
 **Edge**
 
-- **E1:** `GET /gallery?page=0`, `?page=-1`, `?page=abc`, or `?page=` (empty) → **200**, no 500; page index treated safely (e.g. default or clamp per implementation plan).
-- **E2:** `GET /gallery?page=999999` (beyond last page) → **200**, no 500; behavior matches clamp rule (e.g. last valid page or first).
-- **E3:** Total images ≤ `page_size` → **200**, all visible images on one request; pagination chrome absent or minimal (per spec).
+- **E1:** `GET /gallery?page=0`, `?page=-1`, `?page=abc`, or `?page=` (empty) → **200**, no 500; page index treated safely (default **1** or clamp per implementation).
+- **E2:** `GET /gallery?page=999999` (beyond last page) → **200**, no 500; body reflects **last valid page** (implementation clamps to last page).
+- **E3:** **Precondition:** total rows in `images` with on-disk files is **≤ `page_size`** (one page only). **`GET /gallery`** → **200**. **Check:** no pagination `<nav>` for the gallery (e.g. HTML must **not** contain `aria-label="Gallery pagination"`); all visible thumbnails appear on that single response.
 
 **Execute tests**
 
 ```bash
 BASE=http://localhost:8080
 
-# S1: default gallery
+# S1: status + optional thumbnail count (adjust expected max if page_size changes in code)
 curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery"
 # Expect: 200
 
-# S2: explicit page 1
-curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery?page=1"
-# Expect: 200
+# S1 (content): thumbnail count should be ≤ 5 when images exist (0 when empty)
+# curl -s "$BASE/gallery" | grep -o 'alt="Published image"' | wc -l
 
-# S3: compare thumbnail counts / overlap (requires > page_size images with files on disk)
-# curl -s "$BASE/gallery" | grep -o '<img' | wc -l
-# curl -s "$BASE/gallery?page=2" | grep -o '<img' | wc -l
-# Expect: each ≤ page_size; after implementation, sum across pages matches filterRowsWithExistingFiles-visible total (manual if needed)
+# S2: same body as default gallery when page=1
+curl -s "$BASE/gallery" -o /tmp/gallery_default.html
+curl -s "$BASE/gallery?page=1" -o /tmp/gallery_page1.html
+cmp -s /tmp/gallery_default.html /tmp/gallery_page1.html && echo "S2 OK: bodies match" || echo "S2 FAIL: bodies differ"
+rm -f /tmp/gallery_default.html /tmp/gallery_page1.html
+
+# S3: requires >5 images with files on disk — uncomment and run when data is ready
+# curl -s "$BASE/gallery" | grep -o 'alt="Published image"' | wc -l    # expect ≤ 5
+# curl -s "$BASE/gallery?page=2" | grep -o 'alt="Published image"' | wc -l # expect ≤ 5
+# curl -s "$BASE/gallery" | grep -Eo 'src="[^"]+"' | sort -u > /tmp/p1.src
+# curl -s "$BASE/gallery?page=2" | grep -Eo 'src="[^"]+"' | sort -u > /tmp/p2.src
+# sort /tmp/p1.src /tmp/p2.src | uniq -d   # expect: no lines (no shared src between pages)
+# curl -s "$BASE/gallery" | grep -q 'aria-label="Gallery pagination"' && echo "S3 nav present" || echo "S3 nav missing (unexpected if totalPages>1)"
 
 # F1: unknown path
 curl -s -o /dev/null -w "%{http_code}" "$BASE/gallerie"
 # Expect: 404
 
-# E1 / E2: bad page values still 200
-curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery?page=0"
-curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery?page=-1"
-curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery?page=abc"
-curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery?page="
-curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery?page=999999"
-# Expect: all 200 (no uncaught errors)
+# F2: manual — see test case F2 (DB failure, generic message, no stack trace)
 
-# E3: small corpus — optional visual check in browser
+# E1 / E2: bad page values still 200
+for q in 'page=0' 'page=-1' 'page=abc' 'page=' 'page=999999'; do
+  curl -s -o /dev/null -w "$q -> %{http_code}\n" "$BASE/gallery?$q"
+done
+# Expect: each line ends with -> 200
+
+# E3: run when DB has ≤5 visible images (all on one page); expect no gallery pagination nav
+curl -s -o /dev/null -w "%{http_code}" "$BASE/gallery"
+# Expect: 200
+# curl -s "$BASE/gallery" | grep -F 'aria-label="Gallery pagination"' && echo "E3 FAIL: nav should be absent" || echo "E3 OK: no pagination nav"
 ```
