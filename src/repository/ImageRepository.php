@@ -59,4 +59,25 @@ class ImageRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows ?: [];
     }
+
+    public function findById(int $imageId): ?array 
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'SELECT id, image_path, user_id FROM images WHERE id = ?'
+        );
+        $stmt->execute([$imageId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+    public function deleteById(int $imageId): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'DELETE FROM images WHERE id = ?'
+        );
+        return $stmt->execute([$imageId]) ? true : false;
+    }
 }

@@ -191,6 +191,32 @@ class EditorController
         exit;
     }
 
+    public static function delete(): void
+    {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+        $imageId = $_POST['image_id'] ?? null;
+        if (!is_numeric($imageId) || $imageId <= 0 || $imageId === '' || $imageId === null) {
+            $_SESSION['editor_error'] = 'Invalid image ID.';
+            header('Location: /editor');
+            exit;
+        }
+        require_once __DIR__ . '/../service/ImageDeleteService.php';
+        $result = new ImageDeleteService();
+        $result = $result->delete((int) $imageId, (int) $_SESSION['user_id']);
+        if (!$result['success']) {
+            $_SESSION['editor_error'] = $result['error'];
+            header('Location: /editor');
+            exit;
+        }
+
+        $_SESSION['editor_success'] = $result['message'];
+        header('Location: /editor');
+        exit;
+    }
+
     /**
      * @return array{
      *   stickers: list<array<string, mixed>>,
@@ -229,6 +255,10 @@ class EditorController
                 }
             }
         }
+        $editorError = $_SESSION['editor_error'] ?? null;
+        $editorSuccess = $_SESSION['editor_success'] ?? null;
+        unset($_SESSION['editor_error']);
+        unset($_SESSION['editor_success']);
 
         return [
             'stickers' => $stickers,
@@ -236,6 +266,8 @@ class EditorController
             'savedImages' => $savedImages,
             'editorPreviewSrc' => $editorPreviewSrc,
             'canSaveEditorImage' => $canSaveEditorImage,
+            'editorError' => $editorError,
+            'editorSuccess' => $editorSuccess,
         ];
     }
 

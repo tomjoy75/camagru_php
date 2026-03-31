@@ -1,5 +1,17 @@
 <div class="w-full grid grid-cols-1 lg:grid-cols-5 gap-6">
     <section class="lg:col-span-4 space-y-4">
+        <?php if (!empty($editorSuccess)): ?>
+            <div class="rounded border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                <?php echo htmlspecialchars($editorSuccess, ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($editorError)): ?>
+            <div class="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+                <?php echo htmlspecialchars($editorError, ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
+
         <!-- Preview: uploaded temp image or webcam placeholder -->
         <div class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
             <?php if (!empty($editorPreviewSrc)): ?>
@@ -77,10 +89,21 @@
                         <?php
                         $path = $saved['image_path'] ?? '';
                         $src = ($path !== '' && $path[0] !== '/') ? '/' . $path : $path;
+                        $imageId = $saved['id'] ?? null;
                         ?>
-                        <a href="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>" class="aspect-square bg-slate-200 rounded overflow-hidden block border border-slate-200 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500">
-                            <img src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="w-full h-full object-cover">
-                        </a>
+                        <div class="space-y-2">
+                            <a href="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>" class="aspect-square bg-slate-200 rounded overflow-hidden block border border-slate-200 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500">
+                                <img src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="w-full h-full object-cover">
+                            </a>
+                            <?php if ($imageId !== null): ?>
+                                <form method="post" action="/editor/delete">
+                                    <input type="hidden" name="image_id" value="<?php echo htmlspecialchars($imageId, ENT_QUOTES, 'UTF-8'); ?>">
+                                    <button type="submit" class="rounded bg-red-600 px-2 py-1 text-white text-xs hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                        Delete
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
