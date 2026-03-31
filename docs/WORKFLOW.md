@@ -248,21 +248,38 @@ Select the **next smallest logical unit** to implement.
 ### AI Prompt
 
 ```
-Read docs/feature_tree.md and docs/architecture.md.
+Use the current GitHub issue backlog and project board for this repository, together with:
+- docs/feature_tree.md
+- docs/ARCHITECT.md
+- docs/WORKFLOW.md
 
-Identify the next smallest logical and testable unit to implement.
+Important:
+In this repository, the architecture reference is docs/ARCHITECT.md.
+Do not assume docs/architecture.md.
 
-The unit must be:
-- implementable in one development step
-- testable independently
-- not dependent on multiple unfinished features
+Goal:
+Recommend the next issue to move from Todo to Doing.
 
-Generate:
-1. short feature specification
-2. minimal implementation plan
-3. main components or modules involved (per architecture.md)
+Selection criteria:
+- smallest logical and testable next unit
+- preferably already present as an open GitHub issue
+- should build naturally on what is already done
+- should not depend on multiple unfinished features
+- should fit the current MVC architecture and workflow
+- prefer visible product value
+- avoid optional/later items unless clearly justified
+
+Your task:
+1. inspect the current GitHub issues and project statuses
+2. identify the best next candidate issue to activate
+3. explain briefly why
+4. list 2 or 3 alternative candidates
+5. mention any dependency or sequencing concern
+6. if your best candidate is smaller than an existing issue, say so explicitly
 
 Do not write code.
+Do not modify files.
+Do not change issue statuses yet.
 ```
 
 ---
