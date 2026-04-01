@@ -50,19 +50,28 @@ class ImageComposeService
             return ['errors' => ['Invalid sticker dimensions.']];
         }
 
-        $maxX = $baseWidth - $stickerWidth;
-        $maxY = $baseHeight - $stickerHeight;
-        if ($maxX < 0 || $maxY < 0) {
-            imagedestroy($baseImage);
+        $target = self::targetStickerDimensions($baseWidth, $baseHeight, $stickerWidth, $stickerHeight);
+        $drawW = $target['w'];
+        $drawH = $target['h'];
+
+        if ($drawW !== $stickerWidth || $drawH !== $stickerHeight) {
+            $scaled = self::resampleStickerImage($stickerImage, $drawW, $drawH);
             imagedestroy($stickerImage);
-            return ['errors' => ['Sticker is larger than base image.']];
+            if (is_array($scaled)) {
+                imagedestroy($baseImage);
+                return $scaled;
+            }
+            $stickerImage = $scaled;
         }
+
+        $maxX = $baseWidth - $drawW;
+        $maxY = $baseHeight - $drawH;
 
         $x = max(0, min($x, $maxX));
         $y = max(0, min($y, $maxY));
 
         imagealphablending($baseImage, true);
-        imagecopy($baseImage, $stickerImage, $x, $y, 0, 0, $stickerWidth, $stickerHeight);
+        imagecopy($baseImage, $stickerImage, $x, $y, 0, 0, $drawW, $drawH);
         imagedestroy($stickerImage);
 
         $tmpDir = __DIR__ . '/../../public/tmp';
@@ -136,6 +145,52 @@ class ImageComposeService
         imagealphablending($img, false);
         imagesavealpha($img, true);
         return $img;
+    }
+
+    /**
+     * Uniform scale capped at 1 so the sticker fits inside the base (integer size, min side ≥ 1).
+     *
+     * @return array{w: int, h: int}
+     */
+    private static function targetStickerDimensions(int $baseW, int $baseH, int $sw, int $sh): array
+    {
+        $scale = min(1.0, (float) $baseW / $sw, (float) $baseH / $sh);
+        $w = max(1, (int) floor($sw * $scale));
+        $h = max(1, (int) floor($sh * $scale));
+        if ($w > $baseW) {
+            $w = $baseW;
+        }
+        if ($h > $baseH) {
+            $h = $baseH;
+        }
+
+        return ['w' => $w, 'h' => $h];
+    }
+
+    /**
+     * Resize sticker for drawing; preserves alpha. Returns GdImage or error array.
+     */
+    private static function resampleStickerImage(GdImage $src, int $dstW, int $dstH): GdImage|array
+    {
+        $srcW = imagesx($src);
+        $srcH = imagesy($src);
+        if ($dstW <= 0 || $dstH <= 0) {
+            return ['errors' => ['Invalid target dimensions.']];
+        }
+        $dst = imagecreatetruecolor($dstW, $dstH);
+        if ($dst === false) {
+            return ['errors' => ['Failed to allocate scaled sticker.']];
+        }
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+        $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+        imagefill($dst, 0, 0, $transparent);
+        imagealphablending($dst, true);
+        imagecopyresampled($dst, $src, 0, 0, 0, 0, $dstW, $dstH, $srcW, $srcH);
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+
+        return $dst;
     }
 
     private static function savePng(GdImage $img, string $path): bool
