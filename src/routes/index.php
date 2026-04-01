@@ -101,6 +101,22 @@ if ($path === '/test') {
     header('Content-Type: image/png');
     readfile($file);
     exit;
+} else if (strpos($path, '/js/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $name = basename(substr($path, strlen('/js/')));
+    if ($name === '' || pathinfo($name, PATHINFO_EXTENSION) !== 'js') {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    $file = __DIR__ . '/../../public/js/' . $name;
+    if (!is_file($file)) {
+        require __DIR__ . '/../controller/NotFoundController.php';
+        NotFoundController::handle();
+        exit;
+    }
+    header('Content-Type: application/javascript; charset=UTF-8');
+    readfile($file);
+    exit;
 } else {
     require __DIR__ . '/../controller/NotFoundController.php';
     NotFoundController::handle();

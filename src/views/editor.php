@@ -17,7 +17,15 @@
             <?php if (!empty($editorPreviewSrc)): ?>
                 <img src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>" alt="Uploaded preview" class="max-w-full max-h-full w-auto h-auto object-contain">
             <?php else: ?>
-                <span>Webcam preview</span>
+                <video
+                    id="editor-webcam-preview"
+                    class="hidden w-full h-full object-contain bg-slate-900"
+                    autoplay
+                    playsinline
+                    muted
+                    aria-label="Live webcam preview"
+                ></video>
+                <p id="editor-webcam-fallback" class="text-slate-500">Webcam preview</p>
             <?php endif; ?>
         </div>
 
@@ -110,3 +118,7 @@
         </div>
     </aside>
 </div>
+
+<?php if (empty($editorPreviewSrc)): ?>
+    <script src="/js/editor_webcam_preview.js"></script>
+<?php endif; ?>
