@@ -59,4 +59,51 @@ class ImageUploadService
 
         return ['filename' => $filename];
     }
+
+    /**
+     * Process captured data URL image from webcam snapshot.
+     * Returns ['filename' => string] on success, ['errors' => string[]] on failure.
+     */
+    public static function processCaptureData(string $dataUrl): array
+    {
+        $errors = [];
+        if ($dataUrl === '') {
+            return ['errors' => ['No capture data provided.']];
+        }
+
+        if (!preg_match('/\Adata:image\/(png|jpeg);base64,(.+)\z/s', $dataUrl, $matches)) {
+            return ['errors' => ['Invalid capture payload.']];
+        }
+
+        $binary = base64_decode($matches[2], true);
+        if ($binary === false || $binary === '') {
+            return ['errors' => ['Invalid capture payload.']];
+        }
+
+        if (strlen($binary) > self::MAX_SIZE_BYTES) {
+            return ['errors' => ['Capture must be 5 MB or smaller.']];
+        }
+
+        $info = @getimagesizefromstring($binary);
+        if ($info === false) {
+            return ['errors' => ['Capture is not a valid image.']];
+        }
+        if (!in_array($info[2], self::ALLOWED_TYPES, true)) {
+            return ['errors' => ['Only PNG and JPEG images are allowed.']];
+        }
+
+        $ext = $info[2] === IMAGETYPE_PNG ? 'png' : 'jpg';
+        $filename = sprintf('img_%s.%s', bin2hex(random_bytes(8)), $ext);
+        $tmpDir = __DIR__ . '/../../public/tmp';
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0755, true);
+        }
+
+        $destination = $tmpDir . '/' . $filename;
+        if (file_put_contents($destination, $binary) === false) {
+            return ['errors' => ['Failed to save capture.']];
+        }
+
+        return ['filename' => $filename];
+    }
 }

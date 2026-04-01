@@ -33,17 +33,37 @@ class EditorController
 
         if (isset($result['filename'])) {
             $_SESSION['editor_temp_image'] = $result['filename'];
+            $_SESSION['editor_success'] = 'Image loaded into editor workspace.';
             header('Location: /editor');
             exit;
         }
 
-        extract(array_merge(self::editorViewContext(), [
-            'errors' => ['upload' => $result['errors'][0] ?? 'Upload failed.'],
-        ]), EXTR_SKIP);
+        $_SESSION['editor_error'] = $result['errors'][0] ?? 'Upload failed.';
+        header('Location: /editor');
+        exit;
+    }
 
-        header('Content-Type: text/html; charset=utf-8');
-        $view = 'editor.php';
-        require __DIR__ . '/../views/layout.php';
+    public static function capture(): void
+    {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+
+        require __DIR__ . '/../service/ImageUploadService.php';
+        $dataUrl = (string) ($_POST['base_image_data'] ?? '');
+        $result = ImageUploadService::processCaptureData($dataUrl);
+
+        if (isset($result['filename'])) {
+            $_SESSION['editor_temp_image'] = $result['filename'];
+            $_SESSION['editor_success'] = 'Capture loaded into editor workspace.';
+            header('Location: /editor');
+            exit;
+        }
+
+        $_SESSION['editor_error'] = $result['errors'][0] ?? 'Capture failed.';
+        header('Location: /editor');
+        exit;
     }
 
     public static function compose(): void

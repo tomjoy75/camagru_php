@@ -57,9 +57,12 @@
 
         <!-- Capture and upload -->
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
-            <button type="button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
-                Capture
-            </button>
+            <form method="post" action="/editor/capture" id="editor-capture-form" class="flex flex-col gap-2">
+                <input type="hidden" name="base_image_data" id="editor-capture-input" value="">
+                <button type="submit" id="editor-capture-button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                    Capture
+                </button>
+            </form>
             <form method="post" action="/editor/upload" enctype="multipart/form-data" class="flex flex-col gap-2">
                 <?php if (isset($errors['upload'])): ?>
                     <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['upload'], ENT_QUOTES, 'UTF-8'); ?></p>
@@ -119,6 +122,4 @@
     </aside>
 </div>
 
-<?php if (empty($editorPreviewSrc)): ?>
-    <script src="/js/editor_webcam_preview.js"></script>
-<?php endif; ?>
+<script src="/js/editor_webcam_preview.js"></script>

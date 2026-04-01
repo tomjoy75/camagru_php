@@ -40,6 +40,9 @@ if ($path === '/test') {
 } else if ($path === '/editor/upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::upload();
+} else if ($path === '/editor/capture' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/EditorController.php';
+    EditorController::capture();
 } else if ($path === '/editor/compose' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::compose();
