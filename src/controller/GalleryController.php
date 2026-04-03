@@ -4,7 +4,7 @@
  */
 class GalleryController
 {
-    private const PAGE_SIZE = 5;
+    private const PAGE_SIZE = 6;
 
     public static function show(): void
     {
