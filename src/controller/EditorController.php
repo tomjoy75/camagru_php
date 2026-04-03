@@ -32,7 +32,13 @@ class EditorController
         $result = ImageUploadService::processUpload($file);
 
         if (isset($result['filename'])) {
-            $_SESSION['editor_temp_image'] = $result['filename'];
+            $newFilename = $result['filename'];
+            $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
+            $_SESSION['editor_temp_image'] = $newFilename;
+            $newBase = basename((string) $newFilename);
+            if ($previous !== '' && basename($previous) !== $newBase) {
+                self::unlinkEditorTempFileIfValid($previous);
+            }
             $_SESSION['editor_success'] = 'Image loaded into editor workspace.';
             header('Location: /editor');
             exit;
@@ -55,7 +61,13 @@ class EditorController
         $result = ImageUploadService::processCaptureData($dataUrl);
 
         if (isset($result['filename'])) {
-            $_SESSION['editor_temp_image'] = $result['filename'];
+            $newFilename = $result['filename'];
+            $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
+            $_SESSION['editor_temp_image'] = $newFilename;
+            $newBase = basename((string) $newFilename);
+            if ($previous !== '' && basename($previous) !== $newBase) {
+                self::unlinkEditorTempFileIfValid($previous);
+            }
             $_SESSION['editor_success'] = 'Capture loaded into editor workspace.';
             header('Location: /editor');
             exit;
@@ -102,7 +114,13 @@ class EditorController
         $result = ImageComposeService::compose($editorTempImage, $sticker, (int) $x, (int) $y);
 
         if (isset($result['filename'])) {
-            $_SESSION['editor_temp_image'] = $result['filename'];
+            $newFilename = $result['filename'];
+            $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
+            $_SESSION['editor_temp_image'] = $newFilename;
+            $newBase = basename((string) $newFilename);
+            if ($previous !== '' && basename($previous) !== $newBase) {
+                self::unlinkEditorTempFileIfValid($previous);
+            }
             header('Location: /editor');
             exit;
         }
@@ -245,15 +263,9 @@ class EditorController
         }
 
         $raw = (string) ($_SESSION['editor_temp_image'] ?? '');
-        $base = $raw !== '' ? basename($raw) : '';
         unset($_SESSION['editor_temp_image']);
 
-        if ($base !== '' && $base === $raw && self::isValidEditorTempFilename($base)) {
-            $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
-            if (is_file($tmpPath)) {
-                @unlink($tmpPath);
-            }
-        }
+        self::unlinkEditorTempFileIfValid($raw);
 
         $_SESSION['editor_success'] = 'Workspace cleared. You can capture or upload a new image.';
         header('Location: /editor');
@@ -312,6 +324,22 @@ class EditorController
             'editorError' => $editorError,
             'editorSuccess' => $editorSuccess,
         ];
+    }
+
+    private static function unlinkEditorTempFileIfValid(string $raw): void
+    {
+        $raw = (string) $raw;
+        if ($raw === '') {
+            return;
+        }
+        $base = basename($raw);
+        if ($base !== $raw || !self::isValidEditorTempFilename($base)) {
+            return;
+        }
+        $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
+        if (is_file($tmpPath)) {
+            @unlink($tmpPath);
+        }
     }
 
     private static function isValidEditorTempFilename(string $name): bool
