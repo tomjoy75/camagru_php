@@ -85,6 +85,13 @@
             <?php elseif (isset($errors['save'])): ?>
                 <p class="text-red-600 text-sm self-center"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
             <?php endif; ?>
+            <?php if (!empty($editorPreviewSrc)): ?>
+                <form method="post" action="/editor/reset" class="flex flex-col gap-2">
+                    <button type="submit" class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                        <?php echo htmlspecialchars('Reset workspace', ENT_QUOTES, 'UTF-8'); ?>
+                    </button>
+                </form>
+            <?php endif; ?>
         </div>
     </section>
 
