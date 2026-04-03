@@ -237,6 +237,29 @@ class EditorController
         exit;
     }
 
+    public static function reset(): void
+    {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+
+        $raw = (string) ($_SESSION['editor_temp_image'] ?? '');
+        $base = $raw !== '' ? basename($raw) : '';
+        unset($_SESSION['editor_temp_image']);
+
+        if ($base !== '' && $base === $raw && self::isValidEditorTempFilename($base)) {
+            $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
+            if (is_file($tmpPath)) {
+                @unlink($tmpPath);
+            }
+        }
+
+        $_SESSION['editor_success'] = 'Workspace cleared. You can capture or upload a new image.';
+        header('Location: /editor');
+        exit;
+    }
+
     /**
      * @return array{
      *   stickers: list<array<string, mixed>>,

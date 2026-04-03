@@ -52,6 +52,9 @@ if ($path === '/test') {
 } else if ($path === '/editor/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::delete();
+} else if ($path === '/editor/reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/EditorController.php';
+    EditorController::reset();
 } else if (strpos($path, '/tmp/') === 0 && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $name = basename(substr($path, strlen('/tmp/')));
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
