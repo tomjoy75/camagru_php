@@ -60,13 +60,32 @@ class ImageRepository
         return $rows ?: [];
     }
 
-    public function findById(int $imageId): ?array 
+    public function findById(int $imageId): ?array
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare(
             'SELECT id, image_path, user_id FROM images WHERE id = ?'
         );
+        $stmt->execute([$imageId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    /**
+     * One public image with author and engagement counts (read-only gallery detail).
+     *
+     * @return array{id: int|string, image_path: string, created_at: string, username: string, like_count: int|string, comment_count: int|string}|null
+     */
+    public function findPublicDetailById(int $imageId): ?array
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $sql = 'SELECT i.id, i.image_path, i.created_at, u.username AS username, '
+            . '(SELECT COUNT(*) FROM likes l WHERE l.image_id = i.id) AS like_count, '
+            . '(SELECT COUNT(*) FROM comments c WHERE c.image_id = i.id) AS comment_count '
+            . 'FROM images i INNER JOIN users u ON u.id = i.user_id WHERE i.id = ?';
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([$imageId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;

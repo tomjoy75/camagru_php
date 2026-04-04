@@ -34,6 +34,9 @@ if ($path === '/test') {
 } else if ($path === '/gallery' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/GalleryController.php';
     GalleryController::show();
+} else if ($path === '/gallery/image' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/GalleryController.php';
+    GalleryController::showImage();
 } else if ($path === '/editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::show();
