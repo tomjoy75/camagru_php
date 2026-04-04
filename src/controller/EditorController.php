@@ -33,12 +33,7 @@ class EditorController
 
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
-            $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
-            $_SESSION['editor_temp_image'] = $newFilename;
-            $newBase = basename((string) $newFilename);
-            if ($previous !== '' && basename($previous) !== $newBase) {
-                self::unlinkEditorTempFileIfValid($previous);
-            }
+            self::replaceEditorWorkspaceTemp($newFilename);
             $_SESSION['editor_success'] = 'Image loaded into editor workspace.';
             header('Location: /editor');
             exit;
@@ -62,12 +57,7 @@ class EditorController
 
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
-            $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
-            $_SESSION['editor_temp_image'] = $newFilename;
-            $newBase = basename((string) $newFilename);
-            if ($previous !== '' && basename($previous) !== $newBase) {
-                self::unlinkEditorTempFileIfValid($previous);
-            }
+            self::replaceEditorWorkspaceTemp($newFilename);
             $_SESSION['editor_success'] = 'Capture loaded into editor workspace.';
             header('Location: /editor');
             exit;
@@ -87,51 +77,57 @@ class EditorController
 
         $editorTempImage = $_SESSION['editor_temp_image'] ?? null;
         if ($editorTempImage === null || $editorTempImage === '') {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['compose' => 'No base image available for composition.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithComposeError('No base image available for composition.');
             return;
         }
 
         $sticker = $_POST['sticker'] ?? '';
         $x = $_POST['x'] ?? null;
         $y = $_POST['y'] ?? null;
+        $scaleRaw = $_POST['scale'] ?? null;
+        $angleRaw = $_POST['angle'] ?? null;
+
+        $scale = 1.0;
+        if ($scaleRaw !== null && $scaleRaw !== '') {
+            if (!is_numeric($scaleRaw)) {
+                self::renderEditorWithComposeError('Invalid composition parameters.');
+                return;
+            }
+            $scale = (float) $scaleRaw;
+            if ($scale < 0.05 || $scale > 1.0) {
+                self::renderEditorWithComposeError('Invalid composition parameters.');
+                return;
+            }
+        }
+
+        $angle = 0.0;
+        if ($angleRaw !== null && $angleRaw !== '') {
+            if (!is_numeric($angleRaw)) {
+                self::renderEditorWithComposeError('Invalid composition parameters.');
+                return;
+            }
+            $angle = (float) $angleRaw;
+            if ($angle < -180.0 || $angle > 180.0) {
+                self::renderEditorWithComposeError('Invalid composition parameters.');
+                return;
+            }
+        }
 
         if ($sticker === '' || !is_numeric($x) || !is_numeric($y)) {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['compose' => 'Invalid composition parameters.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithComposeError('Invalid composition parameters.');
             return;
         }
 
         require __DIR__ . '/../service/ImageComposeService.php';
-        $result = ImageComposeService::compose($editorTempImage, $sticker, (int) $x, (int) $y);
+        $result = ImageComposeService::compose($editorTempImage, $sticker, (int) $x, (int) $y, $scale, $angle);
 
         if (isset($result['filename'])) {
-            $newFilename = $result['filename'];
-            $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
-            $_SESSION['editor_temp_image'] = $newFilename;
-            $newBase = basename((string) $newFilename);
-            if ($previous !== '' && basename($previous) !== $newBase) {
-                self::unlinkEditorTempFileIfValid($previous);
-            }
+            self::replaceEditorWorkspaceTemp($result['filename']);
             header('Location: /editor');
             exit;
         }
 
-        extract(array_merge(self::editorViewContext(), [
-            'errors' => ['compose' => $result['errors'][0] ?? 'Composition failed.'],
-        ]), EXTR_SKIP);
-
-        header('Content-Type: text/html; charset=utf-8');
-        $view = 'editor.php';
-        require __DIR__ . '/../views/layout.php';
+        self::renderEditorWithComposeError($result['errors'][0] ?? 'Composition failed.');
     }
 
     public static function save(): void
@@ -225,6 +221,8 @@ class EditorController
             return;
         }
 
+        unset($_SESSION['editor_temp_image']);
+
         header('Location: /editor');
         exit;
     }
@@ -273,6 +271,29 @@ class EditorController
     }
 
     /**
+     * Assign a new workspace temp basename in session and remove the previous tmp file when it differs.
+     */
+    private static function replaceEditorWorkspaceTemp(string $newFilename): void
+    {
+        $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
+        $_SESSION['editor_temp_image'] = $newFilename;
+        $newBase = basename((string) $newFilename);
+        if ($previous !== '' && basename($previous) !== $newBase) {
+            self::unlinkEditorTempFileIfValid($previous);
+        }
+    }
+
+    private static function renderEditorWithComposeError(string $message): void
+    {
+        extract(array_merge(self::editorViewContext(), [
+            'errors' => ['compose' => $message],
+        ]), EXTR_SKIP);
+        header('Content-Type: text/html; charset=utf-8');
+        $view = 'editor.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
+    /**
      * @return array{
      *   stickers: list<array<string, mixed>>,
      *   editorTempImage: string|null,
@@ -297,16 +318,20 @@ class EditorController
 
         $editorPreviewSrc = null;
         $canSaveEditorImage = false;
+        $editorBaseNaturalW = null;
+        $editorBaseNaturalH = null;
         if ($editorTempImage !== null && $editorTempImage !== '') {
             $base = basename((string) $editorTempImage);
             if ($base === (string) $editorTempImage && self::isValidEditorTempFilename($base)) {
                 $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
-                $upPath = __DIR__ . '/../../public/uploads/' . $base;
                 if (is_file($tmpPath)) {
                     $editorPreviewSrc = '/tmp/' . $base;
                     $canSaveEditorImage = true;
-                } elseif (is_file($upPath)) {
-                    $editorPreviewSrc = '/uploads/' . $base;
+                    $info = @getimagesize($tmpPath);
+                    if ($info !== false) {
+                        $editorBaseNaturalW = (int) $info[0];
+                        $editorBaseNaturalH = (int) $info[1];
+                    }
                 }
             }
         }
@@ -321,6 +346,8 @@ class EditorController
             'savedImages' => $savedImages,
             'editorPreviewSrc' => $editorPreviewSrc,
             'canSaveEditorImage' => $canSaveEditorImage,
+            'editorBaseNaturalW' => $editorBaseNaturalW,
+            'editorBaseNaturalH' => $editorBaseNaturalH,
             'editorError' => $editorError,
             'editorSuccess' => $editorSuccess,
         ];

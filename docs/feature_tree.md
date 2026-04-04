@@ -64,6 +64,8 @@
 
 - **Subfeature: Server-side image processing**  
   Receive base image (webcam capture or upload); receive chosen sticker(s) and position data; compose final image on server (GD/ImageMagick via PHP standard library).
+- **Subfeature: Interactive sticker placement**  
+  On the editor preview, user moves, scales, and rotates the selected sticker; client sends numeric parameters with the compose request; server validates and composites (single sticker per compose; existing auth and temp-file rules).
 - **Subfeature: Persist edited images**  
   Store resulting image file; save metadata: owner user id, created_at, sticker used, etc.
 

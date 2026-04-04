@@ -13,43 +13,107 @@
         <?php endif; ?>
 
         <!-- Preview: uploaded temp image or webcam placeholder -->
-        <div class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
-            <?php if (!empty($editorPreviewSrc)): ?>
-                <img src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>" alt="Uploaded preview" class="max-w-full max-h-full w-auto h-auto object-contain">
-            <?php else: ?>
+        <?php if (!empty($editorPreviewSrc)): ?>
+            <div id="editor-preview-host" class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
+                <div id="editor-image-wrap" class="relative h-full w-full min-h-0">
+                    <img
+                        id="editor-base-preview-img"
+                        src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>"
+                        alt="Uploaded preview"
+                        <?php if (!empty($editorBaseNaturalW) && !empty($editorBaseNaturalH)): ?>
+                            width="<?php echo (int) $editorBaseNaturalW; ?>"
+                            height="<?php echo (int) $editorBaseNaturalH; ?>"
+                        <?php endif; ?>
+                        class="block h-full w-full object-contain"
+                    >
+                    <div
+                        id="editor-sticker-stage"
+                        class="absolute top-0 left-0 z-10 hidden cursor-move pointer-events-auto"
+                        aria-hidden="true"
+                    >
+                        <img
+                            id="editor-sticker-overlay"
+                            src=""
+                            alt=""
+                            class="absolute top-0 left-0 block max-w-none pointer-events-none"
+                            draggable="false"
+                        >
+                    </div>
+                </div>
+            </div>
+        <?php else: ?>
+            <div id="editor-preview-host" class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
                 <video
                     id="editor-webcam-preview"
-                    class="hidden w-full h-full object-contain bg-slate-900"
+                    class="hidden h-full w-full object-contain bg-slate-900"
                     autoplay
                     playsinline
                     muted
                     aria-label="Live webcam preview"
                 ></video>
                 <p id="editor-webcam-fallback" class="text-slate-500">Webcam preview</p>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php endif; ?>
 
         <!-- Stickers -->
         <div class="bg-slate-100 rounded-lg border border-slate-200 p-4">
             <p class="text-sm font-medium text-slate-600 mb-2">Stickers</p>
-            <div class="flex flex-wrap gap-3">
-                <?php $stickers = $stickers ?? []; ?>
-                <?php foreach ($stickers as $sticker): ?>
-                    <form method="post" action="/editor/compose" class="inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0">
-                        <input type="hidden" name="sticker" value="<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>">
-                        <input type="hidden" name="x" value="50">
-                        <input type="hidden" name="y" value="50">
-                        <button type="submit" class="w-full h-full flex items-center justify-center">
+            <?php $stickers = $stickers ?? []; ?>
+            <?php if (!empty($editorPreviewSrc) && !empty($editorBaseNaturalW) && !empty($editorBaseNaturalH) && count($stickers) > 0): ?>
+                <form id="editor-compose-form" method="post" action="/editor/compose" class="space-y-3">
+                    <input type="hidden" name="sticker" id="editor-compose-sticker" value="">
+                    <input type="hidden" name="x" id="editor-compose-x" value="0">
+                    <input type="hidden" name="y" id="editor-compose-y" value="0">
+                    <input type="hidden" name="scale" id="editor-compose-scale" value="1">
+                    <input type="hidden" name="angle" id="editor-compose-angle" value="0">
+                    <div class="flex flex-wrap gap-3">
+                        <?php foreach ($stickers as $sticker): ?>
+                            <button
+                                type="button"
+                                class="editor-sticker-pick inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                data-sticker="<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-sticker-url="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                                aria-pressed="false"
+                            >
+                                <img
+                                    src="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    alt="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    title="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    class="max-w-full max-h-full w-auto h-auto object-contain pointer-events-none"
+                                >
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 sm:items-center text-sm text-slate-700">
+                        <label class="flex items-center gap-2 min-w-0">
+                            <span class="shrink-0 w-20">Scale</span>
+                            <input type="range" id="editor-scale-range" class="flex-1 min-w-0" min="5" max="100" value="100" step="1">
+                        </label>
+                        <label class="flex items-center gap-2 min-w-0">
+                            <span class="shrink-0 w-20">Rotate</span>
+                            <input type="range" id="editor-angle-range" class="flex-1 min-w-0" min="-180" max="180" value="0" step="1">
+                        </label>
+                    </div>
+                    <button type="submit" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                        Apply sticker
+                    </button>
+                </form>
+            <?php elseif (count($stickers) === 0): ?>
+                <p class="text-sm text-slate-500">No stickers available.</p>
+            <?php else: ?>
+                <p class="text-sm text-slate-500 mb-2">Upload or capture a base image to position and apply stickers.</p>
+                <div class="flex flex-wrap gap-3 opacity-50 pointer-events-none">
+                    <?php foreach ($stickers as $sticker): ?>
+                        <span class="inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0">
                             <img
                                 src="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
                                 alt="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
-                                title="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
-                                class="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer"
+                                class="max-w-full max-h-full w-auto h-auto object-contain"
                             >
-                        </button>
-                    </form>
-                <?php endforeach; ?>
-            </div>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
             <?php if (isset($errors['compose'])): ?>
                 <p class="mt-2 text-red-600 text-sm"><?php echo htmlspecialchars($errors['compose'], ENT_QUOTES, 'UTF-8'); ?></p>
             <?php endif; ?>
@@ -130,3 +194,6 @@
 </div>
 
 <script src="/js/editor_webcam_preview.js"></script>
+<?php if (!empty($editorPreviewSrc) && !empty($editorBaseNaturalW) && !empty($editorBaseNaturalH) && count($stickers ?? []) > 0): ?>
+    <script src="/js/editor_sticker_placement.js"></script>
+<?php endif; ?>
