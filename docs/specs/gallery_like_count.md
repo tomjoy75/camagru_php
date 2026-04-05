@@ -92,9 +92,16 @@ detail_like_count() {
 }
 
 # Uses data-like-count on the same <a> as href="/gallery/image?id=<id>" (see Behavior; href before count or count before href)
+# Optional $2 = gallery page number (default 1). E3 must pass the page where the id appears.
 list_like_count() {
   id="$1"
-  h=$(curl -s "$BASE/gallery" | tr -d '\n')
+  page="${2:-1}"
+  if [ "$page" = "1" ]; then
+    url="$BASE/gallery"
+  else
+    url="$BASE/gallery?page=$page"
+  fi
+  h=$(curl -s "$url" | tr -d '\n')
   v=$(echo "$h" | sed -n 's/.*<a[^>]*href="\/gallery\/image?id='"$id"'"[^>]*data-like-count="\([0-9][0-9]*\)"[^>]*>.*/\1/p')
   if [ -z "$v" ]; then
     v=$(echo "$h" | sed -n 's/.*<a[^>]*data-like-count="\([0-9][0-9]*\)"[^>]*href="\/gallery\/image?id='"$id"'"[^>]*>.*/\1/p')
@@ -146,7 +153,7 @@ if [ -n "$tp" ] && [ "$tp" -gt 1 ] 2>/dev/null; then
   ID2=$(curl -s "$BASE/gallery?page=2" | grep -oE 'gallery/image\?id=[0-9]+' | head -1 | cut -d= -f2)
   if [ -n "$ID2" ]; then
     d3=$(detail_like_count "$ID2")
-    l3=$(list_like_count "$ID2")
+    l3=$(list_like_count "$ID2" 2)
     echo "E3 page=2 id=$ID2 detail=$d3 list=$l3"
     if [ -z "$d3" ] || [ -z "$l3" ] || [ "$d3" != "$l3" ]; then
       bump_fail "E3 list/detail mismatch on page 2"

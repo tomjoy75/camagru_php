@@ -14,17 +14,23 @@
                     $path = $item['image_path'] ?? '';
                     $src = ($path !== '' && ($path[0] ?? '') !== '/') ? '/' . $path : $path;
                     $imageId = (int) ($item['id'] ?? 0);
+                    $likeCount = (int) ($item['like_count'] ?? 0);
                     $detailHref = '/gallery/image?id=' . $imageId;
                     ?>
                     <a
                         href="<?php echo htmlspecialchars($detailHref, ENT_QUOTES, 'UTF-8'); ?>"
-                        class="aspect-square bg-slate-200 rounded overflow-hidden border border-slate-200 block hover:ring-2 hover:ring-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        class="flex flex-col rounded overflow-hidden border border-slate-200 bg-slate-200 block hover:ring-2 hover:ring-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        data-image-id="<?php echo $imageId; ?>"
+                        data-like-count="<?php echo $likeCount; ?>"
                     >
-                        <img
-                            src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>"
-                            alt="Published image"
-                            class="w-full h-full object-cover"
-                        >
+                        <div class="aspect-square w-full min-h-0 shrink-0 overflow-hidden">
+                            <img
+                                src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>"
+                                alt="Published image"
+                                class="w-full h-full object-cover"
+                            >
+                        </div>
+                        <span class="text-xs text-slate-700 px-2 py-1 bg-slate-100 border-t border-slate-200">Likes: <?php echo $likeCount; ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
