@@ -1,6 +1,6 @@
 <?php
 /**
- * Public read-only gallery listing (no auth).
+ * Public gallery listing and image detail; authenticated like toggle.
  */
 class GalleryController
 {
@@ -67,6 +67,8 @@ class GalleryController
         $createdAt = '';
         $likeCount = 0;
         $commentCount = 0;
+        $hasLiked = false;
+        $detailImageId = $imageId;
 
         try {
             require_once __DIR__ . '/../repository/ImageRepository.php';
@@ -87,16 +89,82 @@ class GalleryController
             $createdAt = (string) ($row['created_at'] ?? '');
             $likeCount = (int) ($row['like_count'] ?? 0);
             $commentCount = (int) ($row['comment_count'] ?? 0);
+
+            if (isset($_SESSION['user_id']) && $_SESSION['user_id'] !== '') {
+                require_once __DIR__ . '/../repository/LikeRepository.php';
+                $likeRepo = new LikeRepository();
+                $hasLiked = $likeRepo->hasLiked((int) $_SESSION['user_id'], $imageId);
+            }
         } catch (Throwable $e) {
             $detailLoadError = true;
         }
 
         extract(
-            compact('detailLoadError', 'imageSrc', 'username', 'createdAt', 'likeCount', 'commentCount'),
+            compact(
+                'detailLoadError',
+                'imageSrc',
+                'username',
+                'createdAt',
+                'likeCount',
+                'commentCount',
+                'hasLiked',
+                'detailImageId'
+            ),
             EXTR_SKIP
         );
         $view = 'gallery_image.php';
         require __DIR__ . '/../views/layout.php';
+    }
+
+    public static function toggleLike(): void
+    {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+        $userId = (int) $_SESSION['user_id'];
+
+        $raw = $_POST['image_id'] ?? null;
+        if ($raw === null || $raw === '') {
+            header('Location: /gallery');
+            exit;
+        }
+        $imageId = filter_var($raw, FILTER_VALIDATE_INT);
+        if ($imageId === false || $imageId < 1) {
+            header('Location: /gallery');
+            exit;
+        }
+
+        try {
+            require_once __DIR__ . '/../repository/ImageRepository.php';
+            $imageRepo = new ImageRepository();
+            if ($imageRepo->findById($imageId) === null) {
+                header('Location: /gallery');
+                exit;
+            }
+
+            require_once __DIR__ . '/../repository/LikeRepository.php';
+            $likeRepo = new LikeRepository();
+            if ($likeRepo->hasLiked($userId, $imageId)) {
+                $likeRepo->deleteByUserAndImage($userId, $imageId);
+            } else {
+                $likeRepo->insert($userId, $imageId);
+            }
+        } catch (PDOException $e) {
+            $sqlState = $e->errorInfo[0] ?? '';
+            if ($sqlState === '23000') {
+                header('Location: /gallery/image?id=' . $imageId);
+                exit;
+            }
+            header('Location: /gallery');
+            exit;
+        } catch (Throwable $e) {
+            header('Location: /gallery');
+            exit;
+        }
+
+        header('Location: /gallery/image?id=' . $imageId);
+        exit;
     }
 
     /**
