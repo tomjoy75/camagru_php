@@ -56,11 +56,43 @@
                     <?php
                     $cc = (int) ($commentCount ?? 0);
                     echo $cc;
-                    if ($cc === 0) {
-                        echo ' <span class="text-slate-500">(none yet)</span>';
-                    }
                     ?>
                 </dd></div>
         </dl>
+        <?php
+        $commentRows = $comments ?? [];
+        ?>
+        <section class="mt-6 border-t border-slate-200 pt-4" aria-label="Comments">
+            <h2 class="text-lg font-semibold text-slate-800 mb-3">Comments</h2>
+            <?php if (count($commentRows) === 0): ?>
+                <p class="text-sm text-slate-500">No comments yet</p>
+            <?php else: ?>
+                <ul class="space-y-4 text-sm text-slate-700 list-none pl-0">
+                    <?php foreach ($commentRows as $cRow): ?>
+                        <?php
+                        $cUser = (string) ($cRow['username'] ?? '');
+                        $cBody = (string) ($cRow['content'] ?? '');
+                        $cRaw = (string) ($cRow['created_at'] ?? '');
+                        $cLabel = $cRaw;
+                        if ($cRaw !== '') {
+                            $cts = strtotime($cRaw);
+                            if ($cts !== false) {
+                                $cLabel = date('M j, Y \a\t g:i A', $cts);
+                            }
+                        }
+                        ?>
+                        <li class="border-b border-slate-100 pb-3 last:border-0">
+                            <div class="font-medium text-slate-800">
+                                <?php echo htmlspecialchars($cUser, ENT_QUOTES, 'UTF-8'); ?>
+                                <span class="text-slate-500 font-normal"> · <?php echo htmlspecialchars($cLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                            </div>
+                            <div class="mt-1 whitespace-pre-wrap break-words">
+                                <?php echo htmlspecialchars($cBody, ENT_QUOTES, 'UTF-8'); ?>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </section>
     <?php endif; ?>
 </div>

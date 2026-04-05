@@ -67,6 +67,7 @@ class GalleryController
         $createdAt = '';
         $likeCount = 0;
         $commentCount = 0;
+        $comments = [];
         $hasLiked = false;
         $detailImageId = $imageId;
 
@@ -88,7 +89,11 @@ class GalleryController
             $username = (string) ($row['username'] ?? '');
             $createdAt = (string) ($row['created_at'] ?? '');
             $likeCount = (int) ($row['like_count'] ?? 0);
-            $commentCount = (int) ($row['comment_count'] ?? 0);
+
+            require_once __DIR__ . '/../repository/CommentRepository.php';
+            $commentRepo = new CommentRepository();
+            $comments = $commentRepo->findByImageId($imageId);
+            $commentCount = count($comments);
 
             if (isset($_SESSION['user_id']) && $_SESSION['user_id'] !== '') {
                 require_once __DIR__ . '/../repository/LikeRepository.php';
@@ -107,6 +112,7 @@ class GalleryController
                 'createdAt',
                 'likeCount',
                 'commentCount',
+                'comments',
                 'hasLiked',
                 'detailImageId'
             ),
