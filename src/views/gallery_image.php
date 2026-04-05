@@ -10,15 +10,10 @@
         <p class="text-slate-600">This image could not be loaded. Please try again later.</p>
     <?php else: ?>
         <?php
+        require_once __DIR__ . '/../helpers/sqlite_datetime_display.php';
         $src = $imageSrc ?? '';
         $createdRaw = $createdAt ?? '';
-        $createdLabel = $createdRaw;
-        if ($createdRaw !== '') {
-            $ts = strtotime($createdRaw);
-            if ($ts !== false) {
-                $createdLabel = date('M j, Y \a\t g:i A', $ts);
-            }
-        }
+        $createdLabel = format_sqlite_utc_datetime_for_display((string) $createdRaw);
         $sessionUserId = $_SESSION['user_id'] ?? null;
         $canInteract = $sessionUserId !== null && $sessionUserId !== '';
         $imgId = (int) ($detailImageId ?? 0);
@@ -64,7 +59,12 @@
             <p class="text-sm text-green-700 mt-2"><?php echo htmlspecialchars((string) $galleryCommentSuccess, ENT_QUOTES, 'UTF-8'); ?></p>
         <?php endif; ?>
         <?php if ($canInteract && $imgId >= 1): ?>
-            <form method="post" action="<?php echo htmlspecialchars('/gallery/comment', ENT_QUOTES, 'UTF-8'); ?>" class="mt-4 space-y-2">
+            <form
+                id="comment-form"
+                method="post"
+                action="<?php echo htmlspecialchars('/gallery/comment', ENT_QUOTES, 'UTF-8'); ?>"
+                class="mt-4 space-y-2 scroll-mt-24"
+            >
                 <input type="hidden" name="image_id" value="<?php echo $imgId; ?>">
                 <label for="comment-content" class="block text-sm font-medium text-slate-800">Add a comment</label>
                 <textarea
@@ -93,13 +93,7 @@
                         $cUser = (string) ($cRow['username'] ?? '');
                         $cBody = (string) ($cRow['content'] ?? '');
                         $cRaw = (string) ($cRow['created_at'] ?? '');
-                        $cLabel = $cRaw;
-                        if ($cRaw !== '') {
-                            $cts = strtotime($cRaw);
-                            if ($cts !== false) {
-                                $cLabel = date('M j, Y \a\t g:i A', $cts);
-                            }
-                        }
+                        $cLabel = format_sqlite_utc_datetime_for_display($cRaw);
                         ?>
                         <li class="border-b border-slate-100 pb-3 last:border-0">
                             <div class="font-medium text-slate-800">

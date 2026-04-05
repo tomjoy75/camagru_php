@@ -3,7 +3,7 @@
     <nav class="flex items-center gap-4">
         <a href="/gallery" class="text-slate-600 hover:text-slate-900 underline">Gallery</a>
         <a href="/editor" class="text-slate-600 hover:text-slate-900 underline">Editor</a>
-        <?php if (isset($_SESSION['user_id'])): ?>
+        <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] !== ''): ?>
             <a href="/logout" class="text-slate-600 hover:text-slate-900 underline">Logout</a>
         <?php else: ?>
             <a href="/login" class="text-slate-600 hover:text-slate-900 underline">Login</a>

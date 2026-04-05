@@ -6,6 +6,9 @@ class GalleryController
 {
     private const PAGE_SIZE = 6;
 
+    /** Fragment so redirect after comment POST scrolls the composer into view (it sits above the thread). */
+    private const GALLERY_IMAGE_COMMENT_FORM_FRAGMENT = '#comment-form';
+
     public static function show(): void
     {
         header('Content-Type: text/html; charset=utf-8');
@@ -220,22 +223,50 @@ class GalleryController
         $trimmed = trim($body);
         if ($trimmed === '') {
             $_SESSION['gallery_comment_error'] = 'Comment cannot be empty.';
-            header('Location: /gallery/image?id=' . $imageId);
+            header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
+            exit;
+        }
+
+        $normalized = self::normalizeGalleryCommentContent($trimmed);
+        if ($normalized === '') {
+            $_SESSION['gallery_comment_error'] = 'Comment cannot be empty.';
+            header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
+            exit;
+        }
+
+        if (strlen($normalized) > 2000) {
+            $_SESSION['gallery_comment_error'] = 'Comment is too long.';
+            header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
             exit;
         }
 
         require_once __DIR__ . '/../repository/CommentRepository.php';
         $commentRepo = new CommentRepository();
-        $newId = $commentRepo->insert($userId, $imageId, $trimmed);
+        $newId = $commentRepo->insert($userId, $imageId, $normalized);
         if ($newId === null) {
             $_SESSION['gallery_comment_error'] = 'Could not save comment. Please try again.';
-            header('Location: /gallery/image?id=' . $imageId);
+            header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
             exit;
         }
 
         $_SESSION['gallery_comment_success'] = 'Comment posted.';
-        header('Location: /gallery/image?id=' . $imageId);
+        header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
         exit;
+    }
+
+    /**
+     * Plain-text comment body for persistence: strip tags, trim, no NUL, normalized newlines.
+     *
+     * @param non-empty-string $trimmed already trim()'d POST content
+     * @return string empty if nothing left after sanitization
+     */
+    private static function normalizeGalleryCommentContent(string $trimmed): string
+    {
+        $s = trim(strip_tags($trimmed));
+        $s = str_replace("\0", '', $s);
+        $s = str_replace(["\r\n", "\r"], "\n", $s);
+
+        return $s;
     }
 
     /**
