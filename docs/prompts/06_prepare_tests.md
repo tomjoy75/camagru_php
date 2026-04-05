@@ -1,6 +1,6 @@
 # Step 6: Prepare Tests
 
-**Source:** WORKFLOW.md §9 – Test cases and Issue Creation (Generate Tests)
+**Source:** WORKFLOW.md §7.4 – Generate test plan
 
 **Output:** A "## Tests" section appended to `docs/specs/<feature_name>.md`
 
