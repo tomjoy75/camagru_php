@@ -40,6 +40,9 @@ if ($path === '/test') {
 } else if ($path === '/gallery/like' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/GalleryController.php';
     GalleryController::toggleLike();
+} else if ($path === '/gallery/comment' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/GalleryController.php';
+    GalleryController::addComment();
 } else if ($path === '/editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/EditorController.php';
     EditorController::show();

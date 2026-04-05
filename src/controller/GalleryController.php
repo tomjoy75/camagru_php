@@ -1,6 +1,6 @@
 <?php
 /**
- * Public gallery listing and image detail; authenticated like toggle.
+ * Public gallery listing and image detail; authenticated like toggle and comment submit.
  */
 class GalleryController
 {
@@ -104,6 +104,16 @@ class GalleryController
             $detailLoadError = true;
         }
 
+        $galleryCommentError = null;
+        $galleryCommentSuccess = null;
+        if (empty($detailLoadError)) {
+            $galleryCommentError = $_SESSION['gallery_comment_error'] ?? null;
+            $galleryCommentSuccess = $_SESSION['gallery_comment_success'] ?? null;
+            unset($_SESSION['gallery_comment_error'], $_SESSION['gallery_comment_success']);
+        } else {
+            unset($_SESSION['gallery_comment_error'], $_SESSION['gallery_comment_success']);
+        }
+
         extract(
             compact(
                 'detailLoadError',
@@ -114,7 +124,9 @@ class GalleryController
                 'commentCount',
                 'comments',
                 'hasLiked',
-                'detailImageId'
+                'detailImageId',
+                'galleryCommentError',
+                'galleryCommentSuccess'
             ),
             EXTR_SKIP
         );
@@ -169,6 +181,59 @@ class GalleryController
             exit;
         }
 
+        header('Location: /gallery/image?id=' . $imageId);
+        exit;
+    }
+
+    public static function addComment(): void
+    {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+        $userId = (int) $_SESSION['user_id'];
+
+        $raw = $_POST['image_id'] ?? null;
+        if ($raw === null || $raw === '') {
+            header('Location: /gallery');
+            exit;
+        }
+        $imageId = filter_var($raw, FILTER_VALIDATE_INT);
+        if ($imageId === false || $imageId < 1) {
+            header('Location: /gallery');
+            exit;
+        }
+
+        try {
+            require_once __DIR__ . '/../repository/ImageRepository.php';
+            $imageRepo = new ImageRepository();
+            if ($imageRepo->findById($imageId) === null) {
+                header('Location: /gallery');
+                exit;
+            }
+        } catch (Throwable $e) {
+            header('Location: /gallery');
+            exit;
+        }
+
+        $body = isset($_POST['content']) ? (string) $_POST['content'] : '';
+        $trimmed = trim($body);
+        if ($trimmed === '') {
+            $_SESSION['gallery_comment_error'] = 'Comment cannot be empty.';
+            header('Location: /gallery/image?id=' . $imageId);
+            exit;
+        }
+
+        require_once __DIR__ . '/../repository/CommentRepository.php';
+        $commentRepo = new CommentRepository();
+        $newId = $commentRepo->insert($userId, $imageId, $trimmed);
+        if ($newId === null) {
+            $_SESSION['gallery_comment_error'] = 'Could not save comment. Please try again.';
+            header('Location: /gallery/image?id=' . $imageId);
+            exit;
+        }
+
+        $_SESSION['gallery_comment_success'] = 'Comment posted.';
         header('Location: /gallery/image?id=' . $imageId);
         exit;
     }
