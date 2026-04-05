@@ -27,4 +27,41 @@ class UserRepository
         ]);
         return (int) $pdo->lastInsertId();
     }
+
+    /**
+     * @return int|null 0 or 1 if the user exists, null if no row
+     */
+    public function getNotificationsEnabledByUserId(int $userId): ?int
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT notifications_enabled FROM users WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $userId]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            return null;
+        }
+
+        return (int) $row['notifications_enabled'] ? 1 : 0;
+    }
+
+    /**
+     * @param 0|1 $enabled
+     */
+    public function setNotificationsEnabledByUserId(int $userId, int $enabled): bool
+    {
+        if ($enabled !== 0 && $enabled !== 1) {
+            return false;
+        }
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $check = $pdo->prepare('SELECT 1 FROM users WHERE id = :id LIMIT 1');
+        $check->execute([':id' => $userId]);
+        if ($check->fetch() === false) {
+            return false;
+        }
+        $stmt = $pdo->prepare('UPDATE users SET notifications_enabled = :n WHERE id = :id');
+
+        return $stmt->execute([':n' => $enabled, ':id' => $userId]);
+    }
 }

@@ -31,6 +31,12 @@ if ($path === '/test') {
 } else if ($path === '/logout') {
     require __DIR__ . '/../controller/AuthController.php';
     AuthController::logout();
+} else if ($path === '/settings/notifications' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/SettingsController.php';
+    SettingsController::showNotifications();
+} else if ($path === '/settings/notifications' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/SettingsController.php';
+    SettingsController::updateNotifications();
 } else if ($path === '/gallery' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/GalleryController.php';
     GalleryController::show();
