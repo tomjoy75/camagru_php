@@ -87,7 +87,7 @@
                     <div class="flex flex-col sm:flex-row gap-3 sm:items-center text-sm text-slate-700">
                         <label class="flex items-center gap-2 min-w-0">
                             <span class="shrink-0 w-20">Scale</span>
-                            <input type="range" id="editor-scale-range" class="flex-1 min-w-0" min="5" max="100" value="100" step="1">
+                            <input type="range" id="editor-scale-range" class="flex-1 min-w-0" min="5" max="100" value="50" step="1">
                         </label>
                         <label class="flex items-center gap-2 min-w-0">
                             <span class="shrink-0 w-20">Rotate</span>
