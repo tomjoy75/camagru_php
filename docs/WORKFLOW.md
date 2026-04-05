@@ -440,7 +440,7 @@ Do **not** write application code. Do **not** modify any files. Wait for my expl
 
 **Start coding only after §7.5 confirmation** (when the task includes application changes).
 
-After this high-level loop, the concrete execution flow is: §9 → §10 → §11.
+After this high-level loop, the concrete execution flow is: §9 → §10 → §11 → §12.
 
 Workflow for each step:
 
@@ -462,7 +462,7 @@ Enrich active issue (tracker)
 ↓/
 Implement steps (commit per step)/
 ↓/
-Run tests/
+Execute spec tests + update issue (§11)/
 ↓/
 Fix if needed/
 ↓/
@@ -536,7 +536,7 @@ Do **not** write application code. Do **not** modify repository files. Wait for 
 
 ## Branch (already done)
 
-Create the working branch **right after feature selection** (**§5-bis**), usually from the issue in GitHub (or equivalent)—there is **no** dedicated Cursor prompt for this step. If you skipped §5-bis, do it before §10.
+Create the working branch **right after feature selection** (**§5-bis**), usually from the issue in GitHub (or equivalent)—there is **no** dedicated Cursor prompt for this step. If you skipped §5-bis, do it before §10 (and keep the same branch for §11).
 
 ---
 
@@ -576,23 +576,59 @@ Phase B — after I confirm: implement strictly within scope, following the plan
 
 ---
 
-# 11. Complete the feature
+# 11. Test execution and issue update (AI)
 
-When implementation and the **Run tests** / **Fix** loop are finished, **close the feature** in a controlled way:
+After **§10** implementation, run the checks defined in the feature spec and record outcomes before **§12 Complete the feature**. Treat `## Tests` (or equivalent) as the script: automate what the environment allows, isolate what must be done manually, then sync the **active GitHub issue** with a concise test report.
 
-1. **Validate** — Check the work against the feature spec and the **test plan** (runnable checks from the spec’s Tests section, §7.4). Record **passed**, **failed**, and **deferred** items.
-2. **Update the active tracker issue** — Add a short validation summary (outcomes, deferrals).
+### AI Prompt
+
+```
+We are at WORKFLOW §11 — test execution and tracker update (after §10 implementation).
+
+Read:
+- docs/specs/<feature_name>.md (focus on "## Tests", "## Test plan", or equivalent runnable / verification blocks)
+- docs/WORKFLOW-addendum-web-server.md (only if the spec’s tests are HTTP/curl or web-specific)
+
+Goals:
+
+1. **Locate tests** — Find the spec’s test section and any embedded commands, steps, or success criteria tied to it.
+
+2. **Execute faithfully** — Run automated checks yourself when possible (e.g. shell blocks, curl scripts), using the **exact** commands from the spec. If the environment blocks something (no server, wrong port, missing DB, tool absent), say what you ran instead and what differed—do not pretend a check ran.
+
+3. **Split automated vs manual** —
+   - **Automated:** what you executed in this session and the outcome (pass / fail / skipped + reason).
+   - **Manual / browser:** checks you cannot fully run here (UI-only flows, device-specific behavior, production-only, etc.).
+
+4. **Manual checklist for the developer** — For each manual item: numbered steps, **expected result**, and how it maps to the spec (e.g. criterion S3).
+
+5. **Summary** — Short table or bullet list: passed | failed | skipped | needs manual validation | blocking issues (if any).
+
+6. **GitHub issue** — Draft text to **add or edit** on the **active issue** for this feature: what was tested, what passed, what failed, what still needs manual validation, and any blocker. Keep it concise and paste-ready (or note the exact UI steps to add a comment if you cannot use the API or CLI).
+
+Rules:
+- Do **not** change application code unless the user explicitly asks to fix a failing test.
+- If tests fail, state facts and suspected area; do not silently widen scope.
+```
+
+---
+
+# 12. Complete the feature
+
+When **§10** implementation, **§11** spec-based test execution (and any **fix / re-test** you need) are finished, **close the feature** in a controlled way:
+
+1. **Validate** — Check the work against the feature spec and the **test plan** (runnable checks from the spec’s Tests section, §7.4; align with **§11** outcomes). Record **passed**, **failed**, and **deferred** items.
+2. **Update the active tracker issue** — Add a short validation summary (outcomes, deferrals) if not already covered by **§11**.
 3. **Board status** — Set the item to **Done** (or your tool’s equivalent) when scope matches what was agreed; otherwise keep it in **Doing** / **Waiting** until it does.
 4. **Close the issue** — When your process says the unit of work is finished, **close** it in the tracker so lists stay accurate (many tools still show closed items on a **Done** column).
 5. **Commit** — Commit any remaining changes on the feature branch with clear messages.
 6. **Merge** — Merge into your main integration branch per your team’s rules.
 7. **Optional** — Capture deferred checks or light tech debt (e.g. a short note on the issue, in the spec, or a small **Post-feature cleanup** section in the spec if you use one).
 
-Then continue with **§12 Iteration Cycle** for the next unit of work.
+Then continue with **§13 Iteration Cycle** for the next unit of work.
 
 ---
 
-# 12. Iteration Cycle
+# 13. Iteration Cycle
 
 Repeat the cycle:
 
@@ -610,13 +646,15 @@ generate test plan (§7.4)
 ↓  
 confirm (§7.5 gate)  
 ↓  
-code  
+code (§10)  
 ↓  
-run / fix tests
+execute spec tests + issue update (§11)  
+↓  
+fix / re-test if needed
 
 ---
 
-# 13. Project Evolution
+# 14. Project Evolution
 
 As the project grows:
 
@@ -666,13 +704,13 @@ Understand Steps
 ↓  
 Enrich active issue (tracker)  
 ↓  
-Implement Steps (commit per step)  
+Implement Steps (commit per step) (§10)  
 ↓  
-Run Tests  
+Execute spec tests + update issue (§11)  
 ↓  
-Fix  
+Fix / re-test if needed  
 ↓  
-Validate; update tracker; close issue; merge branch
+Validate; update tracker; close issue; merge branch (§12)
 
 ```
 

@@ -1,6 +1,6 @@
 # Step 7: Implement Feature
 
-**Source:** WORKFLOW.md §7 (plan) + §7.4 (tests) + §7.5 (gate) + §8 (loop) + §9 (tracker)
+**Source:** WORKFLOW.md §7 (plan) + §7.4 (tests) + §7.5 (gate) + §8 (loop) + §9 (tracker) + §10–§12 (implement, test+issue, complete)
 
 ---
 
@@ -79,9 +79,9 @@ Explain step <n> of the implementation plan in simple terms without writing code
 2. User confirmation (WORKFLOW §7.5)  
 3. Understand each step before coding  
 4. Active issue update (WORKFLOW §9); branch per §5-bis if not already  
-5. Implement steps (commit per step), e.g. `feat(editor): add upload endpoint`  
-6. Run tests  
-7. Fix if needed  
-8. Close issue & merge  
+5. Implement steps (WORKFLOW §10; commit per step), e.g. `feat(editor): add upload endpoint`  
+6. Execute spec tests + update issue (WORKFLOW §11)  
+7. Fix / re-test if needed  
+8. Close issue & merge (WORKFLOW §12)  
 
 **Core rule:** Treat the implementation plan as the source of truth. If you need to change it, update the plan first, then implement. Do not redefine steps ad hoc during implementation.

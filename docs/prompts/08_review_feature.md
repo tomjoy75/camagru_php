@@ -1,6 +1,6 @@
 # Step 8: Review Feature
 
-**Source:** WORKFLOW.md §8 (Implementation Loop – Run tests / Fix) and §10–11 (Iteration, Project Evolution)
+**Source:** WORKFLOW.md §8 (loop), §11 (test execution + issue), §12 (complete feature), §13–§14 (iteration, project evolution)
 
 ---
 
