@@ -5,6 +5,7 @@ ARCHITECT.md
 PROMPT.md
 Feature_devellopment_workflow.png
 cookies.txt
+cookies*.txt
 public/tmp
 public/uploads/*
 !public/uploads/.gitkeep

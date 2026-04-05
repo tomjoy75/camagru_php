@@ -207,13 +207,16 @@ class GalleryController
             exit;
         }
 
+        $ownerUserId = 0;
         try {
             require_once __DIR__ . '/../repository/ImageRepository.php';
             $imageRepo = new ImageRepository();
-            if ($imageRepo->findById($imageId) === null) {
+            $imageRow = $imageRepo->findById($imageId);
+            if ($imageRow === null) {
                 header('Location: /gallery');
                 exit;
             }
+            $ownerUserId = (int) ($imageRow['user_id'] ?? 0);
         } catch (Throwable $e) {
             header('Location: /gallery');
             exit;
@@ -248,6 +251,9 @@ class GalleryController
             header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
             exit;
         }
+
+        require_once __DIR__ . '/../service/CommentNotificationService.php';
+        CommentNotificationService::tryNotifyOnNewComment($ownerUserId, $userId, $imageId, $newId);
 
         $_SESSION['gallery_comment_success'] = 'Comment posted.';
         header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
