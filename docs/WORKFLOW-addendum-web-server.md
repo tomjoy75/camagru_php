@@ -85,7 +85,7 @@ Use alongside WORKFLOW **Core Principles** when the project follows MVC:
 
 ------------------------------------------------------------------------
 
-## Test plan — HTTP with curl (extends WORKFLOW §9)
+## Test plan — HTTP with curl (extends WORKFLOW §7.4)
 
 When the feature is verified via **HTTP**, append runnable **`curl`** blocks to the feature spec under `## Tests`.
 

@@ -284,6 +284,18 @@ Do not change issue statuses yet.
 
 ---
 
+# 5-bis. Create branch (from active issue)
+
+Once you know **which** issue you are implementing (§5), create the **feature branch** from the tracker so all later commits land on the right line of work.
+
+**Typical approach (no AI prompt):** use your host’s workflow from the issue itself—for example GitHub’s **Create a branch** (or linked branch) on the issue page. That keeps the branch name and the issue tied together without a separate Cursor step.
+
+**If you use Git only:** after the remote branch exists, `git fetch` and check it out locally with the same name your team agreed on.
+
+This step is **intentionally early**: branch right after selection, then write the spec, plan, and tests on that branch (§6 onward).
+
+---
+
 # 6. Feature Specification
 
 ```
@@ -351,100 +363,9 @@ Explain step <n> of the implementation plan in simple terms without writing code
 
 ---
 
-# 7.5 Spec-driven implementation gate (AI)
+# 7.4 Generate test plan (AI)
 
-This section is a **pre-implementation checkpoint**. The goal is to verify the feature is **ready to implement** before any **application source code** changes. It **blocks premature coding**: the AI may **produce** the discovery summary and artifact review below, but **whether to implement** stays an **explicit user decision** (e.g. after you say “go ahead”).
-
-### AI Prompt
-
-```
-We are at the §7.5 spec-driven implementation gate.
-
-Read:
-- docs/ARCHITECT.md
-- docs/WORKFLOW.md
-- docs/WORKFLOW-addendum-web-server.md (use sections that apply to this project; treat as optional if irrelevant)
-- docs/specs/<feature_name>.md
-
-Then provide:
-
-1. **Files to read** — each path with a one-line reason.
-2. **Files to modify** — each path with a one-line reason; if unknown, say so instead of guessing.
-3. **Files to create** — each path with a one-line reason; if none, say none.
-4. **Feature spec** — confirm whether the spec exists and is **sufficient** for implementation (goal, behavior, constraints, success criteria). If not, list gaps.
-5. **Implementation plan** — confirm whether a plan in the spec is **sufficient**. If not, list gaps.
-6. **Test plan** — confirm whether a test plan with runnable checks is **sufficient** (per WORKFLOW §9 and the web addendum where applicable). If not, list gaps.
-7. **Scope creep** — note obvious ways the work could grow beyond the current spec.
-8. **Architecture** — note concerns relative to docs/ARCHITECT.md and the Core Principles in docs/WORKFLOW.md.
-
-Do **not** write application code. Do **not** modify any files. Wait for my explicit confirmation before implementation.
-```
-
----
-
-# 8. Implementation Loop
-
-**Start coding only after §7.5 confirmation** (when the task includes application changes).
-
-After this high-level loop, the concrete execution flow is: §9 → §10 → §11.
-
-Workflow for each step:
-
-Feature Spec/
-↓/
-Implementation Plan/
-↓/
-Understand Steps/
-↓/
-Generate Test Cases/
-↓/
-Activate issue + Branch
-↓/
-Implement steps (commit per step)/
-↓/
-Run tests/
-↓/
-Fix if needed/
-↓/
-Validate; update tracker; close issue; merge branch
-
-## Active issue enrichment
-
-When a feature is selected for implementation:
-
-- if no issue exists yet, create one
-- if the issue already exists in the backlog, update it instead of creating a duplicate
-
-At this stage, the active issue may be enriched with:
-
-- link or reference to the feature spec
-- short implementation checklist
-- short test checklist
-- current status / notes if useful
-
-The backlog issue becomes the active implementation issue.
-
-This keeps:
-
-- the feature tree as product structure
-- the spec as detailed source of truth
-- the issue as execution and tracking support
-
-§8 is the **conceptual** layer. After the spec includes tests (**§9 Generate Tests**), use **§9 Active issue update** for the **copy/paste prompt** that syncs the tracker issue with the spec.
-
-Recommended git workflow:
-
-git checkout -b feature/
-
-Commit example:
-
-feat(scope): short description of change
-
----
-
-# 9. Test cases and Issue Creation
-
-## Generate Tests
+Append a **test plan** to the spec **after** the implementation plan and **before** the §7.5 gate. The gate reviews whether that plan is sufficient, so it must already exist.
 
 ### AI Prompt
 
@@ -477,14 +398,117 @@ The output structure should include:
 
 Keep the output concise. Do not modify other sections of the spec file.
 
-Append the result in the same file (docs/specs/.md) under a new section titled "## Tests".
+Append the result in the same file (docs/specs/<feature_name>.md) under a new section titled "## Tests".
 ````
-  
-## Active issue update  
-  
-This is the **execution** step for the tracker: **§8 Active issue enrichment** explains *why* and *what* to add; **this subsection** is where you run the operational prompt once the spec (including tests) is ready.  
-  
-After tests are captured in the spec (§9 **Generate Tests**), align the **tracker issue** with the spec:  
+
+---
+
+# 7.5 Spec-driven implementation gate (AI)
+
+**Prerequisite:** the spec already contains a test section from **§7.4** (e.g. `## Tests`). This gate checks that it (and the rest of the spec) is **ready for implementation**.
+
+This section is a **pre-implementation checkpoint**. The goal is to verify the feature is **ready to implement** before any **application source code** changes. It **blocks premature coding**: the AI may **produce** the discovery summary and artifact review below, but **whether to implement** stays an **explicit user decision** (e.g. after you say “go ahead”).
+
+### AI Prompt
+
+```
+We are at the §7.5 spec-driven implementation gate.
+
+Read:
+- docs/ARCHITECT.md
+- docs/WORKFLOW.md
+- docs/WORKFLOW-addendum-web-server.md (use sections that apply to this project; treat as optional if irrelevant)
+- docs/specs/<feature_name>.md
+
+Then provide:
+
+1. **Files to read** — each path with a one-line reason.
+2. **Files to modify** — each path with a one-line reason; if unknown, say so instead of guessing.
+3. **Files to create** — each path with a one-line reason; if none, say none.
+4. **Feature spec** — confirm whether the spec exists and is **sufficient** for implementation (goal, behavior, constraints, success criteria). If not, list gaps.
+5. **Implementation plan** — confirm whether a plan in the spec is **sufficient**. If not, list gaps.
+6. **Test plan** — confirm whether a test plan with runnable checks is **sufficient** (per WORKFLOW §7.4 and the web addendum where applicable). If not, list gaps.
+7. **Scope creep** — note obvious ways the work could grow beyond the current spec.
+8. **Architecture** — note concerns relative to docs/ARCHITECT.md and the Core Principles in docs/WORKFLOW.md.
+
+Do **not** write application code. Do **not** modify any files. Wait for my explicit confirmation before implementation.
+```
+
+---
+
+# 8. Implementation Loop
+
+**Start coding only after §7.5 confirmation** (when the task includes application changes).
+
+After this high-level loop, the concrete execution flow is: §9 → §10 → §11.
+
+Workflow for each step:
+
+Feature selection (§5)/
+↓/
+Create branch from issue (§5-bis)/
+↓/
+Feature Spec/
+↓/
+Implementation Plan/
+↓/
+Generate test plan (§7.4)/
+↓/
+Spec-driven gate — user confirms (§7.5)/
+↓/
+Understand Steps/
+↓/
+Enrich active issue (tracker)
+↓/
+Implement steps (commit per step)/
+↓/
+Run tests/
+↓/
+Fix if needed/
+↓/
+Validate; update tracker; close issue; merge branch
+
+## Active issue enrichment
+
+When a feature is selected for implementation:
+
+- if no issue exists yet, create one
+- if the issue already exists in the backlog, update it instead of creating a duplicate
+
+At this stage, the active issue may be enriched with:
+
+- link or reference to the feature spec
+- short implementation checklist
+- short test checklist
+- current status / notes if useful
+
+The backlog issue becomes the active implementation issue.
+
+This keeps:
+
+- the feature tree as product structure
+- the spec as detailed source of truth
+- the issue as execution and tracking support
+
+§8 is the **conceptual** layer. The **branch** should already exist (**§5-bis**). After **§7.4** and **§7.5**, use **§9 Active issue update** for the **copy/paste prompt** that syncs the tracker issue with the spec.
+
+If you did not use a host-linked branch name, a minimal local equivalent is still:
+
+git checkout -b feature/
+
+Commit example:
+
+feat(scope): short description of change
+
+---
+
+# 9. Active issue update (tracker)
+
+The **test plan** is produced in **§7.4** and reviewed at **§7.5**; this section only syncs the tracker with the spec.
+
+This is the **execution** step for the tracker: **§8 Active issue enrichment** explains *why* and *what* to add; **this section** is where you run the operational prompt once the spec (including tests) is ready **after** the §7.5 gate.
+
+Align the **tracker issue** with the spec:  
   
 - If **no** issue exists yet for this unit of work, **create** one using the prompt below.  
 - If an issue **already** exists (e.g. from backlog projection in §4.5), **update** it—add or refresh the body—instead of opening a duplicate.
@@ -493,7 +517,7 @@ After tests are captured in the spec (§9 **Generate Tests**), align the **track
 
 ```
 
-Read docs/specs/.md (including "## Implementation Plan" and "## Tests" if present) and docs/WORKFLOW.md.
+Read docs/specs/<feature_name>.md (including "## Implementation Plan" and "## Tests" if present) and docs/WORKFLOW.md.
 
 Use the spec file as the source of truth, including:
 
@@ -510,35 +534,9 @@ Do **not** write application code. Do **not** modify repository files. Wait for 
 
 ```
 
-## Create branch
+## Branch (already done)
 
-```
-
-We are now at the "Create branch" step for feature .
-
-Context:
-
-- the tracker issue for this feature already exists
-- the issue is now the active implementation issue
-
-Task:
-
-1. identify the corresponding GitHub issue
-2. propose a clean local branch name based on the issue title/feature name
-3. if possible in this environment, create the local git branch and switch to it
-4. do not write application code yet
-
-Rules:
-
-- keep branch naming simple and consistent
-- prefer a name like:
-  feature/<feature_name>
-  or
-  feature/<issue-number>-<feature_name>
-- report exactly what branch was created
-- if branch creation cannot be automated here, give me the exact git command to run
-
-```
+Create the working branch **right after feature selection** (**§5-bis**), usually from the issue in GitHub (or equivalent)—there is **no** dedicated Cursor prompt for this step. If you skipped §5-bis, do it before §10.
 
 ---
 
@@ -562,9 +560,9 @@ Assumptions—confirm briefly; if any fail, stop and say what is missing:
 
 - Feature spec exists for this unit of work
 - Implementation plan exists in the spec
-- Test plan with runnable checks exists (§9)
+- Test plan with runnable checks exists in the spec (§7.4)
 - Active tracker issue is already updated for implementation
-- Feature branch is created and checked out
+- Feature branch is created and checked out (**§5-bis**)
 
 Phase A — do not change application code yet:
 
@@ -582,7 +580,7 @@ Phase B — after I confirm: implement strictly within scope, following the plan
 
 When implementation and the **Run tests** / **Fix** loop are finished, **close the feature** in a controlled way:
 
-1. **Validate** — Check the work against the feature spec and the **test plan** (runnable checks from §9). Record **passed**, **failed**, and **deferred** items.
+1. **Validate** — Check the work against the feature spec and the **test plan** (runnable checks from the spec’s Tests section, §7.4). Record **passed**, **failed**, and **deferred** items.
 2. **Update the active tracker issue** — Add a short validation summary (outcomes, deferrals).
 3. **Board status** — Set the item to **Done** (or your tool’s equivalent) when scope matches what was agreed; otherwise keep it in **Doing** / **Waiting** until it does.
 4. **Close the issue** — When your process says the unit of work is finished, **close** it in the tracker so lists stay accurate (many tools still show closed items on a **Done** column).
@@ -600,19 +598,21 @@ Repeat the cycle:
 
 feature_tree  
 ↓  
-select smallest unit  
+select smallest unit (§5)  
+↓  
+create branch from issue (§5-bis)  
 ↓  
 feature spec  
 ↓  
 implementation plan  
 ↓  
-test plan  
+generate test plan (§7.4)  
 ↓  
-confirm (§7.5)  
+confirm (§7.5 gate)  
 ↓  
 code  
 ↓  
-tests
+run / fix tests
 
 ---
 
@@ -650,19 +650,21 @@ Architecture
 ↓  
 Feature Tree  
 ↓  
-Select Feature  
+Select Feature (§5)  
+↓  
+Create branch from issue (§5-bis)  
 ↓  
 Feature Spec  
 ↓  
 Implementation Plan  
 ↓  
-Understand Steps  
-↓  
-Generate Test Cases  
+Generate test plan (§7.4)  
 ↓  
 User confirms implementation (§7.5 gate)  
 ↓  
-Activate issue + Branch  
+Understand Steps  
+↓  
+Enrich active issue (tracker)  
 ↓  
 Implement Steps (commit per step)  
 ↓  
