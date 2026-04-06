@@ -64,4 +64,40 @@ class UserRepository
 
         return $stmt->execute([':n' => $enabled, ':id' => $userId]);
     }
+
+    /**
+     * @return non-empty-string|null null if missing row or empty email
+     */
+    public function getEmailByUserId(int $userId): ?string
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT email FROM users WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $userId]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            return null;
+        }
+        $email = trim((string) $row['email']);
+
+        return $email !== '' ? $email : null;
+    }
+
+    /**
+     * @return non-empty-string|null null if missing row or empty username
+     */
+    public function getUsernameByUserId(int $userId): ?string
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT username FROM users WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $userId]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            return null;
+        }
+        $username = trim((string) $row['username']);
+
+        return $username !== '' ? $username : null;
+    }
 }
