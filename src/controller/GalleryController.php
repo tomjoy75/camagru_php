@@ -18,12 +18,22 @@ class GalleryController
         $currentPage = 1;
         $totalPages = 0;
         $pageSize = self::PAGE_SIZE;
+        $galleryFilterUserId = null;
+        $galleryFilterActive = false;
+        $galleryHasAnyImages = false;
 
         try {
             require_once __DIR__ . '/../repository/ImageRepository.php';
             $repo = new ImageRepository();
+            $galleryFilterUserId = self::parseGalleryUserIdFilter();
+            $galleryFilterActive = $galleryFilterUserId !== null;
+            if ($galleryFilterActive) {
+                $galleryHasAnyImages = $repo->countForPublicGallery(null) > 0;
+            }
+
             $currentPage = self::parseGalleryPage();
-            $totalCount = $repo->countForPublicGallery();
+            $filterForQuery = $galleryFilterActive ? $galleryFilterUserId : null;
+            $totalCount = $repo->countForPublicGallery($filterForQuery);
 
             if ($totalCount === 0) {
                 $totalPages = 0;
@@ -35,14 +45,26 @@ class GalleryController
                     $currentPage = $totalPages;
                 }
                 $offset = ($currentPage - 1) * self::PAGE_SIZE;
-                $rows = $repo->findPageForPublicGallery(self::PAGE_SIZE, $offset);
+                $rows = $repo->findPageForPublicGallery(self::PAGE_SIZE, $offset, $filterForQuery);
                 $images = self::filterRowsWithExistingFiles($rows);
             }
         } catch (Throwable $e) {
             $galleryLoadError = true;
         }
 
-        extract(compact('images', 'galleryLoadError', 'currentPage', 'totalPages', 'pageSize'), EXTR_SKIP);
+        extract(
+            compact(
+                'images',
+                'galleryLoadError',
+                'currentPage',
+                'totalPages',
+                'pageSize',
+                'galleryFilterUserId',
+                'galleryFilterActive',
+                'galleryHasAnyImages'
+            ),
+            EXTR_SKIP
+        );
         $view = 'gallery.php';
         require __DIR__ . '/../views/layout.php';
     }
@@ -301,6 +323,26 @@ class GalleryController
         }
 
         return '/' . $rel;
+    }
+
+    /**
+     * Valid positive integer from user_id → filter on; invalid/missing → null (full gallery).
+     */
+    private static function parseGalleryUserIdFilter(): ?int
+    {
+        if (!array_key_exists('user_id', $_GET)) {
+            return null;
+        }
+        $raw = $_GET['user_id'];
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        $parsed = filter_var($raw, FILTER_VALIDATE_INT);
+        if ($parsed === false || $parsed < 1) {
+            return null;
+        }
+
+        return $parsed;
     }
 
     private static function parseGalleryPage(): int

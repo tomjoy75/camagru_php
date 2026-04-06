@@ -1,12 +1,31 @@
 <div class="space-y-4">
     <h1 class="text-xl font-semibold text-slate-800">Gallery</h1>
 
+    <?php
+    $galleryFilterActive = !empty($galleryFilterActive);
+    $galleryHasAnyImages = !empty($galleryHasAnyImages);
+    $galleryFilterUserId = isset($galleryFilterUserId) ? (int) $galleryFilterUserId : 0;
+    $galleryPageQuery = $galleryFilterActive && $galleryFilterUserId > 0
+        ? 'user_id=' . $galleryFilterUserId . '&'
+        : '';
+    ?>
+
+    <?php if ($galleryFilterActive && $galleryFilterUserId > 0): ?>
+        <p class="text-sm">
+            <a href="<?php echo htmlspecialchars('/gallery', ENT_QUOTES, 'UTF-8'); ?>" class="text-slate-700 underline hover:text-slate-900">All users</a>
+        </p>
+    <?php endif; ?>
+
     <?php if (!empty($galleryLoadError)): ?>
         <p class="text-slate-600">The gallery could not be loaded. Please try again later.</p>
     <?php else: ?>
         <?php $images = $images ?? []; ?>
         <?php if (count($images) === 0): ?>
-            <p class="text-slate-600">No images published yet.</p>
+            <?php if ($galleryFilterActive && $galleryHasAnyImages): ?>
+                <p class="text-slate-600">No published images for this user.</p>
+            <?php else: ?>
+                <p class="text-slate-600">No images published yet.</p>
+            <?php endif; ?>
         <?php else: ?>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <?php foreach ($images as $item): ?>
@@ -43,7 +62,7 @@
                 <nav class="flex flex-wrap items-center gap-4 pt-4 text-sm" aria-label="Gallery pagination">
                     <?php if ($currentPage > 1): ?>
                         <a
-                            href="<?php echo htmlspecialchars('/gallery?page=' . ($currentPage - 1), ENT_QUOTES, 'UTF-8'); ?>"
+                            href="<?php echo htmlspecialchars('/gallery?' . $galleryPageQuery . 'page=' . ($currentPage - 1), ENT_QUOTES, 'UTF-8'); ?>"
                             class="text-slate-700 underline hover:text-slate-900"
                         >Previous</a>
                     <?php else: ?>
@@ -54,7 +73,7 @@
 
                     <?php if ($currentPage < $totalPages): ?>
                         <a
-                            href="<?php echo htmlspecialchars('/gallery?page=' . ($currentPage + 1), ENT_QUOTES, 'UTF-8'); ?>"
+                            href="<?php echo htmlspecialchars('/gallery?' . $galleryPageQuery . 'page=' . ($currentPage + 1), ENT_QUOTES, 'UTF-8'); ?>"
                             class="text-slate-700 underline hover:text-slate-900"
                         >Next</a>
                     <?php else: ?>

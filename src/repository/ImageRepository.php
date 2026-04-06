@@ -32,11 +32,23 @@ class ImageRepository
         return $rows ?: [];
     }
 
-    public function countForPublicGallery(): int
+    /**
+     * @param int|null $filterUserId positive user id restricts to that author (must exist in users); null = all images
+     */
+    public function countForPublicGallery(?int $filterUserId = null): int
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $stmt = $pdo->query('SELECT COUNT(*) FROM images');
+        if ($filterUserId === null) {
+            $stmt = $pdo->query('SELECT COUNT(*) FROM images');
+        } else {
+            $stmt = $pdo->prepare(
+                'SELECT COUNT(*) FROM images i '
+                . 'INNER JOIN users u ON u.id = i.user_id WHERE i.user_id = :user_id'
+            );
+            $stmt->bindValue(':user_id', $filterUserId, PDO::PARAM_INT);
+            $stmt->execute();
+        }
         $n = $stmt->fetchColumn();
         return (int) $n;
     }
@@ -44,17 +56,25 @@ class ImageRepository
     /**
      * One page of images for public gallery, newest first.
      *
+     * @param int|null $filterUserId same semantics as countForPublicGallery()
      * @return list<array{id: int|string, image_path: string, created_at: string, like_count: int|string}>
      */
-    public function findPageForPublicGallery(int $limit, int $offset): array
+    public function findPageForPublicGallery(int $limit, int $offset, ?int $filterUserId = null): array
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare(
-            'SELECT i.id, i.image_path, i.created_at, '
+        $base = 'SELECT i.id, i.image_path, i.created_at, '
             . '(SELECT COUNT(*) FROM likes l WHERE l.image_id = i.id) AS like_count '
-            . 'FROM images i ORDER BY i.created_at DESC LIMIT :limit OFFSET :offset'
-        );
+            . 'FROM images i ';
+        if ($filterUserId === null) {
+            $sql = $base . 'ORDER BY i.created_at DESC LIMIT :limit OFFSET :offset';
+            $stmt = $pdo->prepare($sql);
+        } else {
+            $sql = $base . 'INNER JOIN users u ON u.id = i.user_id WHERE i.user_id = :user_id '
+                . 'ORDER BY i.created_at DESC LIMIT :limit OFFSET :offset';
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(':user_id', $filterUserId, PDO::PARAM_INT);
+        }
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
