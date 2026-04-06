@@ -54,24 +54,42 @@ class ImageRepository
     }
 
     /**
-     * One page of images for public gallery, newest first.
+     * One page of images for public gallery.
      *
      * @param int|null $filterUserId same semantics as countForPublicGallery()
+     * @param string $gallerySort one of: newest, oldest, likes, comments
      * @return list<array{id: int|string, image_path: string, created_at: string, like_count: int|string}>
      */
-    public function findPageForPublicGallery(int $limit, int $offset, ?int $filterUserId = null): array
+    public function findPageForPublicGallery(int $limit, int $offset, ?int $filterUserId = null, string $gallerySort = 'newest'): array
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $base = 'SELECT i.id, i.image_path, i.created_at, '
-            . '(SELECT COUNT(*) FROM likes l WHERE l.image_id = i.id) AS like_count '
-            . 'FROM images i ';
+        $likeExpr = '(SELECT COUNT(*) FROM likes l WHERE l.image_id = i.id)';
+        $commentExpr = '(SELECT COUNT(*) FROM comments c WHERE c.image_id = i.id)';
+        $base = 'SELECT i.id, i.image_path, i.created_at, ' . $likeExpr . ' AS like_count FROM images i ';
+
+        switch ($gallerySort) {
+            case 'oldest':
+                $orderBy = 'ORDER BY i.created_at ASC, i.id ASC';
+                break;
+            case 'likes':
+                $orderBy = 'ORDER BY like_count DESC, i.created_at DESC, i.id DESC';
+                break;
+            case 'comments':
+                $orderBy = 'ORDER BY ' . $commentExpr . ' DESC, i.created_at DESC, i.id DESC';
+                break;
+            case 'newest':
+            default:
+                $orderBy = 'ORDER BY i.created_at DESC, i.id DESC';
+                break;
+        }
+
         if ($filterUserId === null) {
-            $sql = $base . 'ORDER BY i.created_at DESC LIMIT :limit OFFSET :offset';
+            $sql = $base . $orderBy . ' LIMIT :limit OFFSET :offset';
             $stmt = $pdo->prepare($sql);
         } else {
             $sql = $base . 'INNER JOIN users u ON u.id = i.user_id WHERE i.user_id = :user_id '
-                . 'ORDER BY i.created_at DESC LIMIT :limit OFFSET :offset';
+                . $orderBy . ' LIMIT :limit OFFSET :offset';
             $stmt = $pdo->prepare($sql);
             $stmt->bindValue(':user_id', $filterUserId, PDO::PARAM_INT);
         }

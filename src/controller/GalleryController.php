@@ -21,6 +21,7 @@ class GalleryController
         $galleryFilterUserId = null;
         $galleryFilterActive = false;
         $galleryHasAnyImages = false;
+        $gallerySort = 'newest';
 
         try {
             require_once __DIR__ . '/../repository/ImageRepository.php';
@@ -30,6 +31,7 @@ class GalleryController
             if ($galleryFilterActive) {
                 $galleryHasAnyImages = $repo->countForPublicGallery(null) > 0;
             }
+            $gallerySort = self::parseGallerySort();
 
             $currentPage = self::parseGalleryPage();
             $filterForQuery = $galleryFilterActive ? $galleryFilterUserId : null;
@@ -45,7 +47,7 @@ class GalleryController
                     $currentPage = $totalPages;
                 }
                 $offset = ($currentPage - 1) * self::PAGE_SIZE;
-                $rows = $repo->findPageForPublicGallery(self::PAGE_SIZE, $offset, $filterForQuery);
+                $rows = $repo->findPageForPublicGallery(self::PAGE_SIZE, $offset, $filterForQuery, $gallerySort);
                 $images = self::filterRowsWithExistingFiles($rows);
             }
         } catch (Throwable $e) {
@@ -61,7 +63,8 @@ class GalleryController
                 'pageSize',
                 'galleryFilterUserId',
                 'galleryFilterActive',
-                'galleryHasAnyImages'
+                'galleryHasAnyImages',
+                'gallerySort'
             ),
             EXTR_SKIP
         );
@@ -323,6 +326,26 @@ class GalleryController
         }
 
         return '/' . $rel;
+    }
+
+    /**
+     * Whitelist sort token from $_GET; invalid/missing/empty → newest.
+     */
+    private static function parseGallerySort(): string
+    {
+        if (!array_key_exists('sort', $_GET)) {
+            return 'newest';
+        }
+        $raw = $_GET['sort'];
+        if (!is_string($raw) || $raw === '') {
+            return 'newest';
+        }
+        $allowed = ['newest', 'oldest', 'likes', 'comments'];
+        if (!in_array($raw, $allowed, true)) {
+            return 'newest';
+        }
+
+        return $raw;
     }
 
     /**
