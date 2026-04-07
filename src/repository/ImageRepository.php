@@ -58,7 +58,7 @@ class ImageRepository
      *
      * @param int|null $filterUserId same semantics as countForPublicGallery()
      * @param string $gallerySort one of: newest, oldest, likes, comments
-     * @return list<array{id: int|string, image_path: string, created_at: string, like_count: int|string}>
+     * @return list<array{id: int|string, image_path: string, created_at: string, user_id: int|string, username: string|null, like_count: int|string}>
      */
     public function findPageForPublicGallery(int $limit, int $offset, ?int $filterUserId = null, string $gallerySort = 'newest'): array
     {
@@ -66,7 +66,8 @@ class ImageRepository
         $pdo = Database::getConnection();
         $likeExpr = '(SELECT COUNT(*) FROM likes l WHERE l.image_id = i.id)';
         $commentExpr = '(SELECT COUNT(*) FROM comments c WHERE c.image_id = i.id)';
-        $base = 'SELECT i.id, i.image_path, i.created_at, ' . $likeExpr . ' AS like_count FROM images i ';
+        $base = 'SELECT i.id, i.image_path, i.created_at, i.user_id, u.username AS username, '
+            . $likeExpr . ' AS like_count FROM images i INNER JOIN users u ON u.id = i.user_id ';
 
         switch ($gallerySort) {
             case 'oldest':
@@ -88,7 +89,7 @@ class ImageRepository
             $sql = $base . $orderBy . ' LIMIT :limit OFFSET :offset';
             $stmt = $pdo->prepare($sql);
         } else {
-            $sql = $base . 'INNER JOIN users u ON u.id = i.user_id WHERE i.user_id = :user_id '
+            $sql = $base . 'WHERE i.user_id = :user_id '
                 . $orderBy . ' LIMIT :limit OFFSET :offset';
             $stmt = $pdo->prepare($sql);
             $stmt->bindValue(':user_id', $filterUserId, PDO::PARAM_INT);

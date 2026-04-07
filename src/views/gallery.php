@@ -88,23 +88,41 @@
                     $src = ($path !== '' && ($path[0] ?? '') !== '/') ? '/' . $path : $path;
                     $imageId = (int) ($item['id'] ?? 0);
                     $likeCount = (int) ($item['like_count'] ?? 0);
+                    $authorId = (int) ($item['user_id'] ?? 0);
+                    $authorName = trim((string) ($item['username'] ?? ''));
+                    if ($authorName === '') {
+                        $authorName = 'Unknown';
+                    }
                     $detailHref = '/gallery/image?id=' . $imageId;
+                    $authorQuery = ['user_id' => $authorId];
+                    if ($gallerySort !== 'newest') {
+                        $authorQuery['sort'] = $gallerySort;
+                    }
+                    $authorFilterHref = '/gallery?' . http_build_query($authorQuery);
                     ?>
-                    <a
-                        href="<?php echo htmlspecialchars($detailHref, ENT_QUOTES, 'UTF-8'); ?>"
-                        class="flex flex-col rounded overflow-hidden border border-slate-200 bg-slate-200 block hover:ring-2 hover:ring-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                        data-image-id="<?php echo $imageId; ?>"
-                        data-like-count="<?php echo $likeCount; ?>"
-                    >
-                        <div class="aspect-square w-full min-h-0 shrink-0 overflow-hidden">
-                            <img
-                                src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>"
-                                alt="Published image"
-                                class="w-full h-full object-cover"
-                            >
-                        </div>
-                        <span class="text-xs text-slate-700 px-2 py-1 bg-slate-100 border-t border-slate-200">Likes: <?php echo $likeCount; ?></span>
-                    </a>
+                    <div class="flex flex-col rounded overflow-hidden border border-slate-200 bg-slate-200">
+                        <a
+                            href="<?php echo htmlspecialchars($detailHref, ENT_QUOTES, 'UTF-8'); ?>"
+                            class="flex flex-col block hover:ring-2 hover:ring-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                            data-image-id="<?php echo $imageId; ?>"
+                            data-like-count="<?php echo $likeCount; ?>"
+                        >
+                            <div class="aspect-square w-full min-h-0 shrink-0 overflow-hidden">
+                                <img
+                                    src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>"
+                                    alt="Published image"
+                                    class="w-full h-full object-cover"
+                                >
+                            </div>
+                            <span class="text-xs text-slate-700 px-2 py-1 bg-slate-100 border-t border-slate-200">Likes: <?php echo $likeCount; ?></span>
+                        </a>
+                        <?php if ($authorId > 0): ?>
+                            <a
+                                href="<?php echo htmlspecialchars($authorFilterHref, ENT_QUOTES, 'UTF-8'); ?>"
+                                class="text-xs text-slate-700 px-2 py-1 bg-slate-100 border-t border-slate-200 underline hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                            ><?php echo htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8'); ?></a>
+                        <?php endif; ?>
+                    </div>
                 <?php endforeach; ?>
             </div>
 
