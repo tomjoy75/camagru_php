@@ -284,7 +284,35 @@ Do not change issue statuses yet.
 
 ---
 
-# 5-bis. Create branch (from active issue)
+# 5-bis. Scope sanity check (before branch)
+
+Before creating a branch, do a quick scope check on the selected issue from §5. If it is too broad for one clean implementation cycle, propose a lightweight split and pick the smallest testable slice to implement next.
+
+### AI Prompt
+
+```
+We are between §5 (Feature Selection) and §5-ter (Create branch).
+
+Input:
+- the currently selected issue from §5
+- current backlog context (issues/dependencies), if available
+
+Task:
+1. Assess whether the selected issue is appropriately scoped for one implementation cycle.
+2. If scope is too broad, propose a practical split into smaller sub-features/issues.
+3. Recommend the best next smallest testable slice to implement now.
+4. Keep rationale brief and implementation-oriented.
+
+Constraints:
+- Do not write code.
+- Do not modify files.
+- Do not create branches yet.
+- Keep this step lightweight and practical.
+```
+
+---
+
+# 5-ter. Create branch (from active issue)
 
 Once you know **which** issue you are implementing (§5), create the **feature branch** from the tracker so all later commits land on the right line of work.
 
