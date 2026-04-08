@@ -83,7 +83,7 @@ class AuthController
     }
 
     /**
-     * Public GET: confirm email via ?token= (64 hex chars). No session required.
+     * Public GET: confirm email via ?token= (64 hex chars). No session required (#47).
      */
     public static function confirmRegister(): void
     {

@@ -1,4 +1,8 @@
 -- SQLite schema for Camagru (minimal)
+--
+-- Existing databases created before email verification: add columns once, e.g.:
+--   ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0;
+--   ALTER TABLE users ADD COLUMN confirmation_token TEXT;
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -6,6 +10,8 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     notifications_enabled INTEGER NOT NULL DEFAULT 1,
+    email_verified INTEGER NOT NULL DEFAULT 0,
+    confirmation_token TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
