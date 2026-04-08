@@ -90,6 +90,12 @@ class AuthService
             $errors['form'] = 'Invalid email or password.';
             return ['errors' => $errors, 'user' => null];
         }
+        if ((int) ($user['email_verified'] ?? 0) !== 1) {
+            $errors['email_verification'] = 'Please verify your email before signing in. Use the link from your confirmation message.';
+
+            return ['errors' => $errors, 'user' => null];
+        }
+
         return ['errors' => [], 'user' => $user];
     }
 }

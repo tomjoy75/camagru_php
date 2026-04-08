@@ -3,6 +3,9 @@ $email = $email ?? '';
 $errors = $errors ?? [];
 ?>
 <form method="post" action="/login" class="bg-white border border-slate-200 rounded-lg shadow-sm p-6 space-y-4">
+    <?php if (isset($errors['email_verification'])): ?>
+        <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['email_verification'], ENT_QUOTES, 'UTF-8'); ?></p>
+    <?php endif; ?>
     <?php if (isset($errors['form'])): ?>
         <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['form'], ENT_QUOTES, 'UTF-8'); ?></p>
     <?php endif; ?>
