@@ -54,10 +54,11 @@ class AuthService
 
         if ($errors === []) {
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            $confirmationToken = bin2hex(random_bytes(32));
             require_once __DIR__ . '/../repository/UserRepository.php';
             $repo = new UserRepository();
             try {
-                $repo->createUser($email, $username, $passwordHash);
+                $repo->createUser($email, $username, $passwordHash, $confirmationToken);
             } catch (PDOException $e) {
                 $errors['form'] = 'Registration failed. Please try again.';
             }

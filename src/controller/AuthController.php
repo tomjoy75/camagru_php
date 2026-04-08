@@ -81,4 +81,48 @@ class AuthController
         header('Location: /login');
         exit;
     }
+
+    /**
+     * Public GET: confirm email via ?token= (64 hex chars). No session required.
+     */
+    public static function confirmRegister(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $token = isset($_GET['token']) ? (string) $_GET['token'] : '';
+        if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+            $confirmResult = 'invalid';
+            $view = 'register_confirm.php';
+            require __DIR__ . '/../views/layout.php';
+
+            return;
+        }
+
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        $row = $repo->findIdAndVerifiedByConfirmationToken($token);
+        if ($row === null) {
+            $confirmResult = 'invalid';
+            $view = 'register_confirm.php';
+            require __DIR__ . '/../views/layout.php';
+
+            return;
+        }
+
+        if ($row['email_verified'] !== 0) {
+            $repo->clearConfirmationToken($row['id']);
+            $confirmResult = 'already';
+            $view = 'register_confirm.php';
+            require __DIR__ . '/../views/layout.php';
+
+            return;
+        }
+
+        if ($repo->markEmailVerifiedAndClearToken($row['id'])) {
+            $confirmResult = 'success';
+        } else {
+            $confirmResult = 'invalid';
+        }
+        $view = 'register_confirm.php';
+        require __DIR__ . '/../views/layout.php';
+    }
 }
