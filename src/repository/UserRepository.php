@@ -9,23 +9,66 @@ class UserRepository
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('SELECT id, email, username, password_hash, notifications_enabled, created_at FROM users WHERE email = :email LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, email, username, password_hash, notifications_enabled, email_verified, confirmation_token, created_at FROM users WHERE email = :email LIMIT 1');
         $stmt->execute([':email' => $email]);
         $row = $stmt->fetch();
         return $row ?: null;
     }
 
-    public function createUser(string $email, string $username, string $passwordHash): int
+    /**
+     * @param non-empty-string $confirmationToken
+     */
+    public function createUser(string $email, string $username, string $passwordHash, string $confirmationToken): int
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('INSERT INTO users (email, username, password_hash) VALUES (:email, :username, :password_hash)');
+        $stmt = $pdo->prepare(
+            'INSERT INTO users (email, username, password_hash, email_verified, confirmation_token) VALUES (:email, :username, :password_hash, 0, :confirmation_token)'
+        );
         $stmt->execute([
             ':email' => $email,
             ':username' => $username,
             ':password_hash' => $passwordHash,
+            ':confirmation_token' => $confirmationToken,
         ]);
+
         return (int) $pdo->lastInsertId();
+    }
+
+    /**
+     * @return array{id: int, email_verified: int}|null
+     */
+    public function findIdAndVerifiedByConfirmationToken(string $token): ?array
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT id, email_verified FROM users WHERE confirmation_token = :token LIMIT 1');
+        $stmt->execute([':token' => $token]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            return null;
+        }
+
+        return ['id' => (int) $row['id'], 'email_verified' => (int) $row['email_verified']];
+    }
+
+    public function markEmailVerifiedAndClearToken(int $userId): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'UPDATE users SET email_verified = 1, confirmation_token = NULL WHERE id = :id AND email_verified = 0'
+        );
+
+        return $stmt->execute([':id' => $userId]) && $stmt->rowCount() > 0;
+    }
+
+    public function clearConfirmationToken(int $userId): void
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('UPDATE users SET confirmation_token = NULL WHERE id = :id');
+        $stmt->execute([':id' => $userId]);
     }
 
     /**
