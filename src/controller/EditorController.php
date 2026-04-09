@@ -240,15 +240,15 @@ class EditorController
             exit;
         }
         require_once __DIR__ . '/../service/ImageDeleteService.php';
-        $result = new ImageDeleteService();
-        $result = $result->delete((int) $imageId, (int) $_SESSION['user_id']);
-        if (!$result['success']) {
-            $_SESSION['editor_error'] = $result['error'];
+        $deleteService = new ImageDeleteService();
+        $deleteResult = $deleteService->delete((int) $imageId, (int) $_SESSION['user_id']);
+        if (!$deleteResult['success']) {
+            $_SESSION['editor_error'] = $deleteResult['error'];
             header('Location: /editor');
             exit;
         }
 
-        $_SESSION['editor_success'] = $result['message'];
+        $_SESSION['editor_success'] = $deleteResult['message'];
         header('Location: /editor');
         exit;
     }

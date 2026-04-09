@@ -20,13 +20,14 @@ class AuthService
     ): array {
         $errors = [];
 
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+
         $email = trim($email);
         $emailError = self::validateEmailFormat($email);
         if ($emailError !== null) {
             $errors['email'] = $emailError;
         } else {
-            require_once __DIR__ . '/../repository/UserRepository.php';
-            $repo = new UserRepository();
             if ($repo->findByEmail($email) !== null) {
                 $errors['email'] = 'Email is already in use.';
             }
@@ -37,8 +38,6 @@ class AuthService
         if ($usernameError !== null) {
             $errors['username'] = $usernameError;
         } else {
-            require_once __DIR__ . '/../repository/UserRepository.php';
-            $repo = new UserRepository();
             if ($repo->findByUsername($username) !== null) {
                 $errors['username'] = 'Username is already in use.';
             }
@@ -56,9 +55,7 @@ class AuthService
         if ($errors === []) {
             $passwordHash = password_hash($password, PASSWORD_DEFAULT);
             $confirmationToken = bin2hex(random_bytes(32));
-            require_once __DIR__ . '/../repository/UserRepository.php';
             require_once __DIR__ . '/RegistrationConfirmationMailService.php';
-            $repo = new UserRepository();
             try {
                 $repo->createUser($email, $username, $passwordHash, $confirmationToken);
             } catch (PDOException $e) {

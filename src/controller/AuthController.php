@@ -36,9 +36,6 @@ class AuthController
         if ($result['errors'] === []) {
             $_SESSION['user_id'] = $result['user']['id'];
             header('Location: /');
-            // Testing: Display a JS alert before redirect
-            // header('Content-Type: text/html; charset=utf-8');
-            // echo '<script>alert("User is logged in!"); window.location.href = "/";</script>';
             exit;
         }
 
