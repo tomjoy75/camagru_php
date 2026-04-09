@@ -165,6 +165,42 @@ class AuthService
     }
 
     /**
+     * Password reset request (#53): verified users get token+expiry persisted (SHA-256 hash in DB), then one mail attempt.
+     * Invalid/unknown/unverified emails are no-ops (caller still shows generic success). Never throws to HTTP layer.
+     */
+    public static function requestPasswordReset(string $email): void
+    {
+        $email = trim($email);
+        if (self::validateEmailFormat($email) !== null) {
+            return;
+        }
+
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        $user = $repo->findByEmail($email);
+        if ($user === null || (int) ($user['email_verified'] ?? 0) !== 1) {
+            return;
+        }
+
+        try {
+            $rawToken = bin2hex(random_bytes(32));
+        } catch (Throwable $e) {
+            return;
+        }
+
+        // Store only hash of raw token; raw token appears only in the email link (#54 will verify).
+        $tokenHash = hash('sha256', $rawToken, false);
+        $expiresAt = date('Y-m-d H:i:s', time() + 3600);
+
+        if (!$repo->setPasswordResetTokenHashAndExpiresAtByUserId((int) $user['id'], $tokenHash, $expiresAt)) {
+            return;
+        }
+
+        require_once __DIR__ . '/RegistrationConfirmationMailService.php';
+        RegistrationConfirmationMailService::trySendPasswordResetRequest($email, $rawToken);
+    }
+
+    /**
      * Change password for an authenticated user. Returns field => error; empty = success.
      */
     public static function changePassword(

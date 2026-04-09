@@ -227,4 +227,23 @@ class UserRepository
 
         return $stmt->execute([':password_hash' => $passwordHash, ':id' => $userId]) && $stmt->rowCount() > 0;
     }
+
+    /**
+     * Replace password reset state for one user (SHA-256 hex hash of raw token; not the raw token).
+     * Expires at: SQLite-friendly 'Y-m-d H:i:s' (UTC-agnostic storage).
+     */
+    public function setPasswordResetTokenHashAndExpiresAtByUserId(int $userId, string $tokenHash, string $expiresAt): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'UPDATE users SET password_reset_token = :token, password_reset_expires_at = :exp WHERE id = :id'
+        );
+
+        return $stmt->execute([
+            ':token' => $tokenHash,
+            ':exp' => $expiresAt,
+            ':id' => $userId,
+        ]) && $stmt->rowCount() > 0;
+    }
 }

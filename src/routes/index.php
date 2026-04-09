@@ -30,6 +30,15 @@ if ($path === '/test') {
 } else if ($path === '/logout') {
     require __DIR__ . '/../controller/AuthController.php';
     AuthController::logout();
+} else if ($path === '/password-reset' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/AuthController.php';
+    AuthController::showPasswordResetForm();
+} else if ($path === '/password-reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/AuthController.php';
+    AuthController::requestPasswordReset();
+} else if ($path === '/password-reset/sent' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/AuthController.php';
+    AuthController::showPasswordResetSent();
 } else if ($path === '/settings/notifications' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/SettingsController.php';
     SettingsController::showNotifications();

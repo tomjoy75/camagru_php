@@ -12,6 +12,7 @@ $errors = $errors ?? [];
     <div class="space-y-1">
         <label for="email" class="block text-sm font-medium text-slate-700">Email</label>
         <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?>" required class="w-full rounded border border-slate-300 px-3 py-2 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500">
+        <p class="text-right text-sm"><a href="/password-reset" class="text-slate-600 underline hover:text-slate-800">Forgot password?</a></p>
     </div>
     <div class="space-y-1">
         <label for="password" class="block text-sm font-medium text-slate-700">Password</label>

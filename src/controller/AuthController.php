@@ -52,6 +52,32 @@ class AuthController
         exit;
     }
 
+    public static function showPasswordResetForm(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $email = '';
+        $view = 'password_reset_request.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
+    public static function requestPasswordReset(): void
+    {
+        require __DIR__ . '/../service/AuthService.php';
+
+        $email = $_POST['email'] ?? '';
+        AuthService::requestPasswordReset(is_string($email) ? $email : '');
+
+        header('Location: /password-reset/sent', true, 302);
+        exit;
+    }
+
+    public static function showPasswordResetSent(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $view = 'password_reset_sent.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
     public static function register(): void
     {
         require __DIR__ . '/../service/AuthService.php';

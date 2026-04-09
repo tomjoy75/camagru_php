@@ -3,6 +3,10 @@
 -- Existing databases created before email verification: add columns once, e.g.:
 --   ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0;
 --   ALTER TABLE users ADD COLUMN confirmation_token TEXT;
+--
+-- Password reset request (#53): add once to existing DBs, e.g.:
+--   ALTER TABLE users ADD COLUMN password_reset_token TEXT;
+--   ALTER TABLE users ADD COLUMN password_reset_expires_at TEXT;
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -12,6 +16,8 @@ CREATE TABLE users (
     notifications_enabled INTEGER NOT NULL DEFAULT 1,
     email_verified INTEGER NOT NULL DEFAULT 0,
     confirmation_token TEXT,
+    password_reset_token TEXT,
+    password_reset_expires_at TEXT,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
