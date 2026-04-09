@@ -40,6 +40,12 @@ if ($path === '/test') {
 } else if ($path === '/settings/notifications' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/SettingsController.php';
     SettingsController::updateNotifications();
+} else if ($path === '/settings/profile' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    require __DIR__ . '/../controller/SettingsController.php';
+    SettingsController::showProfile();
+} else if ($path === '/settings/profile/username' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/SettingsController.php';
+    SettingsController::updateProfileUsername();
 } else if ($path === '/gallery' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/GalleryController.php';
     GalleryController::show();

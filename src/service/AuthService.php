@@ -34,14 +34,15 @@ class AuthService
         }
 
         $username = trim($username);
-        if ($username === '') {
-            $errors['username'] = 'Username is required.';
-        } elseif (strlen($username) < self::USERNAME_MIN_LENGTH) {
-            $errors['username'] = 'Username must be at least ' . self::USERNAME_MIN_LENGTH . ' characters.';
-        } elseif (strlen($username) > self::USERNAME_MAX_LENGTH) {
-            $errors['username'] = 'Username must be at most ' . self::USERNAME_MAX_LENGTH . ' characters.';
-        } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-            $errors['username'] = 'Username may only contain letters, numbers and underscore.';
+        $usernameError = self::validateUsername($username);
+        if ($usernameError !== null) {
+            $errors['username'] = $usernameError;
+        } else {
+            require_once __DIR__ . '/../repository/UserRepository.php';
+            $repo = new UserRepository();
+            if ($repo->findByUsername($username) !== null) {
+                $errors['username'] = 'Username is already in use.';
+            }
         }
 
         if (strlen($password) < self::MIN_PASSWORD_LENGTH) {
@@ -72,6 +73,35 @@ class AuthService
     }
 
     /**
+     * Validates username update for an authenticated user.
+     * Returns ['errors' => array, 'username' => normalized username].
+     */
+    public static function updateUsername(int $userId, string $username): array
+    {
+        $errors = [];
+        $username = trim($username);
+        $usernameError = self::validateUsername($username);
+        if ($usernameError !== null) {
+            $errors['username'] = $usernameError;
+
+            return ['errors' => $errors, 'username' => $username];
+        }
+
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        if ($repo->isUsernameUsedByOtherUser($username, $userId)) {
+            $errors['username'] = 'Username is already in use.';
+
+            return ['errors' => $errors, 'username' => $username];
+        }
+        if (!$repo->updateUsernameByUserId($userId, $username)) {
+            $errors['form'] = 'Could not update username. Please try again.';
+        }
+
+        return ['errors' => $errors, 'username' => $username];
+    }
+
+    /**
      * Validates credentials. Returns ['errors' => array, 'user' => array|null].
      * On success: errors empty, user set. On failure: errors set, user null.
      */
@@ -97,5 +127,23 @@ class AuthService
         }
 
         return ['errors' => [], 'user' => $user];
+    }
+
+    private static function validateUsername(string $username): ?string
+    {
+        if ($username === '') {
+            return 'Username is required.';
+        }
+        if (strlen($username) < self::USERNAME_MIN_LENGTH) {
+            return 'Username must be at least ' . self::USERNAME_MIN_LENGTH . ' characters.';
+        }
+        if (strlen($username) > self::USERNAME_MAX_LENGTH) {
+            return 'Username must be at most ' . self::USERNAME_MAX_LENGTH . ' characters.';
+        }
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+            return 'Username may only contain letters, numbers and underscore.';
+        }
+
+        return null;
     }
 }

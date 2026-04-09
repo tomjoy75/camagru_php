@@ -4,6 +4,53 @@
  */
 class SettingsController
 {
+    public static function showProfile(): void
+    {
+        $userId = self::currentUserId();
+        if ($userId === null) {
+            header('Location: /login');
+            exit;
+        }
+
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        $username = $repo->getUsernameByUserId($userId);
+        if ($username === null) {
+            header('Location: /login');
+            exit;
+        }
+
+        $profileSettingsSuccess = $_SESSION['profile_settings_success'] ?? null;
+        $profileSettingsError = $_SESSION['profile_settings_error'] ?? null;
+        unset($_SESSION['profile_settings_success'], $_SESSION['profile_settings_error']);
+
+        header('Content-Type: text/html; charset=utf-8');
+        $view = 'settings_profile.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
+    public static function updateProfileUsername(): void
+    {
+        $userId = self::currentUserId();
+        if ($userId === null) {
+            header('Location: /login');
+            exit;
+        }
+
+        require_once __DIR__ . '/../service/AuthService.php';
+        $rawUsername = (string) ($_POST['username'] ?? '');
+        $result = AuthService::updateUsername($userId, $rawUsername);
+        if ($result['errors'] !== []) {
+            $_SESSION['profile_settings_error'] = (string) ($result['errors']['username'] ?? $result['errors']['form'] ?? 'Invalid username.');
+            header('Location: /settings/profile');
+            exit;
+        }
+
+        $_SESSION['profile_settings_success'] = 'Username updated.';
+        header('Location: /settings/profile');
+        exit;
+    }
+
     public static function showNotifications(): void
     {
         $userId = self::currentUserId();

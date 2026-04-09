@@ -15,6 +15,36 @@ class UserRepository
         return $row ?: null;
     }
 
+    public function findByUsername(string $username): ?array
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT id, email, username, password_hash, notifications_enabled, email_verified, confirmation_token, created_at FROM users WHERE username = :username LIMIT 1');
+        $stmt->execute([':username' => $username]);
+        $row = $stmt->fetch();
+
+        return $row ?: null;
+    }
+
+    public function isUsernameUsedByOtherUser(string $username, int $userId): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE username = :username AND id != :id LIMIT 1');
+        $stmt->execute([':username' => $username, ':id' => $userId]);
+
+        return $stmt->fetch() !== false;
+    }
+
+    public function updateUsernameByUserId(int $userId, string $username): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('UPDATE users SET username = :username WHERE id = :id');
+
+        return $stmt->execute([':username' => $username, ':id' => $userId]);
+    }
+
     /**
      * @param non-empty-string $confirmationToken plaintext token stored for email confirmation (#47)
      */
