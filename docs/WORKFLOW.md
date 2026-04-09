@@ -437,6 +437,8 @@ Append the result in the same file (docs/specs/<feature_name>.md) under a new se
 
 This section is a **pre-implementation checkpoint**. The goal is to verify the feature is **ready to implement** before any **application source code** changes. It **blocks premature coding**: the AI may **produce** the discovery summary and artifact review below, but **whether to implement** stays an **explicit user decision** (e.g. after you say “go ahead”).
 
+**Light reuse / duplication audit (part of this gate):** Before implementation, do a **quick** scan of the codebase—not a refactor pass. Note whether the feature would **duplicate** logic that already exists, whether **existing code** partly covers the need, and whether a **small, local** simplification (e.g. a private helper in the same class or file) would remove **obvious** duplication. Use this only to **inform** the planned change: do **not** turn the gate into broad cleanup, do **not** introduce speculative abstractions or new layers “for reuse,” and defer larger deduplication to a **dedicated** issue or to the optional **§15** pass unless the current feature spec already includes that work.
+
 ### AI Prompt
 
 ```
@@ -458,6 +460,7 @@ Then provide:
 6. **Test plan** — confirm whether a test plan with runnable checks is **sufficient** (per WORKFLOW §7.4 and the web addendum where applicable). If not, list gaps.
 7. **Scope creep** — note obvious ways the work could grow beyond the current spec.
 8. **Architecture** — note concerns relative to docs/ARCHITECT.md and the Core Principles in docs/WORKFLOW.md.
+9. **Reuse / duplication (light)** — in a few short bullets: could this feature **duplicate** logic that already exists? Is there existing code to **reuse or extend**? Would a **small, local** helper (or equivalent) remove **clear** duplication while staying proportionate to this spec? If nothing obvious, say so. **Do not** propose speculative abstractions, new shared layers, or wide refactors here; if bigger cleanup is warranted, say so briefly and point to a **dedicated** issue or **§15** instead.
 
 Do **not** write application code. Do **not** modify any files. Wait for my explicit confirmation before implementation.
 ```
@@ -695,8 +698,60 @@ As the project grows:
 - update feature_tree.md
 - update architecture.md
 - add new specs in docs/specs/
+- when a substantial set of features is **done**, consider the optional **§15** cleanup / simplification pass (deduplication and readability **without** behavior changes)
 
 These documents serve as **AI context sources**.
+
+---
+
+# 15. Final cleanup / simplification pass (optional)
+
+When a **substantial** portion of planned work is **complete**, schedule a **single**, **controlled** pass over the codebase—not something to run during every feature. **Goal:** simplify, deduplicate, and improve readability **without** changing behavior (same tests/specs, same user-visible outcomes).
+
+**Focus:** repeated logic; **small** private-helper opportunities; dead or unnecessary branches; code that became heavier than needed; **MVC responsibility drift** (e.g. business rules in views, HTTP/session concerns buried in services).
+
+**Rules:** no broad redesign—stay proportional. If cleanup is **large or risky**, open a **dedicated** cleanup/refactor **issue** (or a small set of issues) instead of mixing it into an unrelated feature. **Record** outcomes where your process allows (e.g. tracker comment, short checklist, or a **Post-feature cleanup** note in a spec) and add **follow-up** issues when the pass surfaces work that should not be done in one go.
+
+Afterward, continue only with remaining product work or move to release/handoff per your team’s process.
+
+### AI Prompt
+
+```
+We are at WORKFLOW §15 — final cleanup / simplification pass (optional). A substantial portion of planned work is assumed **complete**; this is a **readiness / audit** step, not normal feature implementation.
+
+Read:
+- docs/ARCHITECT.md
+- docs/WORKFLOW.md (especially **Core Principles** and §15)
+- docs/WORKFLOW-addendum-web-server.md (only if this project is web/MVC and sections apply)
+- the codebase (controllers, services, repositories, views, routing, and relevant assets)
+
+Audit the codebase for:
+- **Repeated logic** and **obvious** opportunities for **small, local** private helpers (same file or class), not new frameworks or layers
+- **Dead or unnecessary** branches/paths
+- Code that became **heavier than needed** for what it does
+- **MVC responsibility drift** (e.g. business rules in views, HTTP/session concerns buried in services, persistence leaking where it should not)
+
+Distinguish clearly:
+- **Small, safe simplifications** — low risk, **no user-visible behavior change**, reasonable to do in one short pass
+- **Larger or riskier refactors** — scope, coupling, or uncertainty warrants a **dedicated** cleanup/refactor **issue** (or issues), not “while we’re here” in this audit
+
+Preferences (in order): **deletion**, **consolidation**, **simplification**. **Do not** add new abstractions unless they remove clear duplication and stay minimal.
+
+Avoid:
+- **Broad redesign** or **speculative** architecture
+- Changing **user-visible** behavior, APIs, or semantics
+- Rewriting **stable** code without a **strong**, audit-backed reason
+
+Produce a practical report with:
+1. **Short audit summary** (what you looked at, overall posture)
+2. **Files / areas** most concerned (paths or modules)
+3. **Recommended safe cleanup actions** (concrete, behavior-preserving)
+4. **Defer to follow-up issues** (larger/risky items—title-worthy bullets)
+
+If **no meaningful** cleanup is justified, say so **clearly** and briefly why.
+
+Do **not** modify repository files unless the user explicitly asks you to implement cleanup after this audit.
+```
 
 ---
 
@@ -744,7 +799,9 @@ Execute spec tests + update issue (§11)
 ↓  
 Fix / re-test if needed  
 ↓  
-Validate; update tracker; close issue; merge branch (§12)
+Validate; update tracker; close issue; merge branch (§12)  
+↓  
+(Optional when the project is near complete: final cleanup / simplification — §15)
 
 ```
 
