@@ -74,6 +74,36 @@ class SettingsController
         exit;
     }
 
+    public static function updateProfilePassword(): void
+    {
+        $userId = self::currentUserId();
+        if ($userId === null) {
+            header('Location: /login');
+            exit;
+        }
+
+        require_once __DIR__ . '/../service/AuthService.php';
+        $current = (string) ($_POST['current_password'] ?? '');
+        $password = (string) ($_POST['password'] ?? '');
+        $confirm = (string) ($_POST['confirm_password'] ?? '');
+        $errors = AuthService::changePassword($userId, $current, $password, $confirm);
+        if ($errors !== []) {
+            $_SESSION['profile_settings_error'] = (string) (
+                $errors['current_password']
+                ?? $errors['password']
+                ?? $errors['confirm_password']
+                ?? $errors['form']
+                ?? 'Could not update password.'
+            );
+            header('Location: /settings/profile');
+            exit;
+        }
+
+        $_SESSION['profile_settings_success'] = 'Password updated.';
+        header('Location: /settings/profile');
+        exit;
+    }
+
     public static function showNotifications(): void
     {
         $userId = self::currentUserId();

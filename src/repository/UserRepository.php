@@ -200,4 +200,31 @@ class UserRepository
 
         return $username !== '' ? $username : null;
     }
+
+    /**
+     * @return non-empty-string|null null if user missing
+     */
+    public function getPasswordHashByUserId(int $userId): ?string
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $userId]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            return null;
+        }
+        $hash = (string) $row['password_hash'];
+
+        return $hash !== '' ? $hash : null;
+    }
+
+    public function updatePasswordHashByUserId(int $userId, string $passwordHash): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('UPDATE users SET password_hash = :password_hash WHERE id = :id');
+
+        return $stmt->execute([':password_hash' => $passwordHash, ':id' => $userId]) && $stmt->rowCount() > 0;
+    }
 }

@@ -49,6 +49,9 @@ if ($path === '/test') {
 } else if ($path === '/settings/profile/email' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/../controller/SettingsController.php';
     SettingsController::updateProfileEmail();
+} else if ($path === '/settings/profile/password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    require __DIR__ . '/../controller/SettingsController.php';
+    SettingsController::updateProfilePassword();
 } else if ($path === '/gallery' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     require __DIR__ . '/../controller/GalleryController.php';
     GalleryController::show();

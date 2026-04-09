@@ -44,8 +44,9 @@ class AuthService
             }
         }
 
-        if (strlen($password) < self::MIN_PASSWORD_LENGTH) {
-            $errors['password'] = 'Password must be at least ' . self::MIN_PASSWORD_LENGTH . ' characters.';
+        $passwordRuleError = self::validateNewPasswordRules($password);
+        if ($passwordRuleError !== null) {
+            $errors['password'] = $passwordRuleError;
         }
 
         if ($password !== $passwordConfirmation) {
@@ -164,6 +165,60 @@ class AuthService
         }
 
         return ['errors' => [], 'user' => $user];
+    }
+
+    /**
+     * Change password for an authenticated user. Returns field => error; empty = success.
+     */
+    public static function changePassword(
+        int $userId,
+        string $currentPassword,
+        string $newPassword,
+        string $newPasswordConfirm
+    ): array {
+        $errors = [];
+
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        $hash = $repo->getPasswordHashByUserId($userId);
+        if ($hash === null) {
+            $errors['form'] = 'Could not update password. Please try again.';
+
+            return $errors;
+        }
+        if (!password_verify($currentPassword, $hash)) {
+            $errors['current_password'] = 'Current password is incorrect.';
+
+            return $errors;
+        }
+
+        $passwordRuleError = self::validateNewPasswordRules($newPassword);
+        if ($passwordRuleError !== null) {
+            $errors['password'] = $passwordRuleError;
+        }
+        if ($newPassword !== $newPasswordConfirm) {
+            $errors['confirm_password'] = 'Passwords do not match.';
+        }
+
+        if ($errors !== []) {
+            return $errors;
+        }
+
+        $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        if (!$repo->updatePasswordHashByUserId($userId, $newHash)) {
+            $errors['form'] = 'Could not update password. Please try again.';
+        }
+
+        return $errors;
+    }
+
+    private static function validateNewPasswordRules(string $password): ?string
+    {
+        if (strlen($password) < self::MIN_PASSWORD_LENGTH) {
+            return 'Password must be at least ' . self::MIN_PASSWORD_LENGTH . ' characters.';
+        }
+
+        return null;
     }
 
     private static function validateUsername(string $username): ?string
