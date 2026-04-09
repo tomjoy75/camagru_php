@@ -561,6 +561,9 @@ Prepare an **active issue update** for this feature:
 Do **not** write application code. Do **not** modify repository files. Wait for explicit user confirmation before any implementation or application code changes.
 
 ```
+```
+update the issue
+```
 
 ## Branch (already done)
 
@@ -600,6 +603,9 @@ Phase A — do not change application code yet:
 4. Wait for my explicit confirmation (e.g. “implement now”).
 
 Phase B — after I confirm: implement strictly within scope, following the plan and ARCHITECT.md / WORKFLOW Core Principles. Run the spec’s checks as you go; fix only within scope if something fails.
+```
+```
+Implement now
 ```
 
 ---
