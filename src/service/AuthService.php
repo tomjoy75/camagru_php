@@ -21,10 +21,9 @@ class AuthService
         $errors = [];
 
         $email = trim($email);
-        if ($email === '') {
-            $errors['email'] = 'Email is required.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Email is invalid.';
+        $emailError = self::validateEmailFormat($email);
+        if ($emailError !== null) {
+            $errors['email'] = $emailError;
         } else {
             require_once __DIR__ . '/../repository/UserRepository.php';
             $repo = new UserRepository();
@@ -102,6 +101,44 @@ class AuthService
     }
 
     /**
+     * Validates email update for an authenticated user.
+     * Returns ['errors' => array, 'email' => normalized email].
+     */
+    public static function updateEmail(int $userId, string $email): array
+    {
+        $errors = [];
+        $email = trim($email);
+        $emailError = self::validateEmailFormat($email);
+        if ($emailError !== null) {
+            $errors['email'] = $emailError;
+
+            return ['errors' => $errors, 'email' => $email];
+        }
+
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        if ($repo->isEmailUsedByOtherUser($email, $userId)) {
+            $errors['email'] = 'Email is already in use.';
+
+            return ['errors' => $errors, 'email' => $email];
+        }
+
+        try {
+            $confirmationToken = bin2hex(random_bytes(32));
+        } catch (Throwable $e) {
+            $errors['form'] = 'Could not update email. Please try again.';
+
+            return ['errors' => $errors, 'email' => $email];
+        }
+
+        if (!$repo->updateEmailAndResetVerificationByUserId($userId, $email, $confirmationToken)) {
+            $errors['form'] = 'Could not update email. Please try again.';
+        }
+
+        return ['errors' => $errors, 'email' => $email];
+    }
+
+    /**
      * Validates credentials. Returns ['errors' => array, 'user' => array|null].
      * On success: errors empty, user set. On failure: errors set, user null.
      */
@@ -142,6 +179,18 @@ class AuthService
         }
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
             return 'Username may only contain letters, numbers and underscore.';
+        }
+
+        return null;
+    }
+
+    private static function validateEmailFormat(string $email): ?string
+    {
+        if ($email === '') {
+            return 'Email is required.';
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return 'Email is invalid.';
         }
 
         return null;

@@ -36,6 +36,16 @@ class UserRepository
         return $stmt->fetch() !== false;
     }
 
+    public function isEmailUsedByOtherUser(string $email, int $userId): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE email = :email AND id != :id LIMIT 1');
+        $stmt->execute([':email' => $email, ':id' => $userId]);
+
+        return $stmt->fetch() !== false;
+    }
+
     public function updateUsernameByUserId(int $userId, string $username): bool
     {
         require_once __DIR__ . '/../db/Database.php';
@@ -43,6 +53,23 @@ class UserRepository
         $stmt = $pdo->prepare('UPDATE users SET username = :username WHERE id = :id');
 
         return $stmt->execute([':username' => $username, ':id' => $userId]);
+    }
+
+    public function updateEmailAndResetVerificationByUserId(int $userId, string $email, string $confirmationToken): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'UPDATE users
+             SET email = :email, email_verified = 0, confirmation_token = :confirmation_token
+             WHERE id = :id'
+        );
+
+        return $stmt->execute([
+            ':email' => $email,
+            ':confirmation_token' => $confirmationToken,
+            ':id' => $userId,
+        ]);
     }
 
     /**

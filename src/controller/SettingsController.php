@@ -15,7 +15,8 @@ class SettingsController
         require_once __DIR__ . '/../repository/UserRepository.php';
         $repo = new UserRepository();
         $username = $repo->getUsernameByUserId($userId);
-        if ($username === null) {
+        $email = $repo->getEmailByUserId($userId);
+        if ($username === null || $email === null) {
             header('Location: /login');
             exit;
         }
@@ -47,6 +48,28 @@ class SettingsController
         }
 
         $_SESSION['profile_settings_success'] = 'Username updated.';
+        header('Location: /settings/profile');
+        exit;
+    }
+
+    public static function updateProfileEmail(): void
+    {
+        $userId = self::currentUserId();
+        if ($userId === null) {
+            header('Location: /login');
+            exit;
+        }
+
+        require_once __DIR__ . '/../service/AuthService.php';
+        $rawEmail = (string) ($_POST['email'] ?? '');
+        $result = AuthService::updateEmail($userId, $rawEmail);
+        if ($result['errors'] !== []) {
+            $_SESSION['profile_settings_error'] = (string) ($result['errors']['email'] ?? $result['errors']['form'] ?? 'Invalid email.');
+            header('Location: /settings/profile');
+            exit;
+        }
+
+        $_SESSION['profile_settings_success'] = 'Email updated. Please confirm your new email before your next sign in.';
         header('Location: /settings/profile');
         exit;
     }
