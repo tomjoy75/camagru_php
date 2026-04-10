@@ -212,17 +212,12 @@ class ImageComposeService
     private static function validateSticker(string $stickerName): array
     {
         require_once __DIR__ . '/StickerService.php';
-        $stickers = StickerService::getStickers();
-        foreach ($stickers as $sticker) {
-            if ($sticker['filename'] === $stickerName) {
-                $path = __DIR__ . '/../../public/stickers/' . $stickerName;
-                if (!is_file($path)) {
-                    return ['errors' => ['Sticker file is missing on server.']];
-                }
-                return ['path' => $path, 'filename' => $stickerName];
-            }
+        if (!StickerService::isAllowedStickerFilename($stickerName)) {
+            return ['errors' => ['Sticker not found.']];
         }
-        return ['errors' => ['Sticker not found.']];
+        $filename = basename($stickerName);
+        $path = __DIR__ . '/../../public/stickers/' . $filename;
+        return ['path' => $path, 'filename' => $filename];
     }
 
     /**

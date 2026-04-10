@@ -195,6 +195,16 @@
         picks[j].addEventListener('click', onPickClick);
     }
 
+    var pre = (hiddenSticker && hiddenSticker.value) ? hiddenSticker.value.trim() : '';
+    if (pre) {
+        for (var k = 0; k < picks.length; k++) {
+            if ((picks[k].getAttribute('data-sticker') || '') === pre) {
+                selectSticker(picks[k]);
+                break;
+            }
+        }
+    }
+
     scaleRange.addEventListener('input', function () {
         syncHiddens();
         syncOverlayVisual();

@@ -61,7 +61,7 @@
             <?php $stickers = $stickers ?? []; ?>
             <?php if (!empty($editorPreviewSrc) && !empty($editorBaseNaturalW) && !empty($editorBaseNaturalH) && count($stickers) > 0): ?>
                 <form id="editor-compose-form" method="post" action="/editor/compose" class="space-y-3">
-                    <input type="hidden" name="sticker" id="editor-compose-sticker" value="">
+                    <input type="hidden" name="sticker" id="editor-compose-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="x" id="editor-compose-x" value="0">
                     <input type="hidden" name="y" id="editor-compose-y" value="0">
                     <input type="hidden" name="scale" id="editor-compose-scale" value="1">
@@ -101,16 +101,23 @@
             <?php elseif (count($stickers) === 0): ?>
                 <p class="text-sm text-slate-500">No stickers available.</p>
             <?php else: ?>
-                <p class="text-sm text-slate-500 mb-2">Upload or capture a base image to position and apply stickers.</p>
-                <div class="flex flex-wrap gap-3 opacity-50 pointer-events-none">
+                <p class="text-sm text-slate-500 mb-2">Choose a sticker, then capture or upload a base image. You can change it after the image loads.</p>
+                <div id="editor-no-base-sticker-picks" class="flex flex-wrap gap-3">
                     <?php foreach ($stickers as $sticker): ?>
-                        <span class="inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0">
+                        <button
+                            type="button"
+                            class="editor-sticker-pick inline-flex items-center justify-center w-16 h-16 rounded border border-slate-200 bg-white p-1 shrink-0 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                            data-sticker="<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                            data-sticker-url="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
+                            aria-pressed="false"
+                        >
                             <img
                                 src="/stickers/<?php echo htmlspecialchars($sticker['filename'], ENT_QUOTES, 'UTF-8'); ?>"
                                 alt="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
-                                class="max-w-full max-h-full w-auto h-auto object-contain"
+                                title="<?php echo htmlspecialchars($sticker['slug'], ENT_QUOTES, 'UTF-8'); ?>"
+                                class="max-w-full max-h-full w-auto h-auto object-contain pointer-events-none"
                             >
-                        </span>
+                        </button>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -123,11 +130,13 @@
         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
             <form method="post" action="/editor/capture" id="editor-capture-form" class="flex flex-col gap-2">
                 <input type="hidden" name="base_image_data" id="editor-capture-input" value="">
+                <input type="hidden" name="sticker" id="editor-capture-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                 <button type="submit" id="editor-capture-button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
                     Capture
                 </button>
             </form>
-            <form method="post" action="/editor/upload" enctype="multipart/form-data" class="flex flex-col gap-2">
+            <form method="post" action="/editor/upload" id="editor-upload-form" enctype="multipart/form-data" class="flex flex-col gap-2">
+                <input type="hidden" name="sticker" id="editor-upload-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                 <?php if (isset($errors['upload'])): ?>
                     <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['upload'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <?php endif; ?>
@@ -194,6 +203,9 @@
 </div>
 
 <script src="/js/editor_webcam_preview.js"></script>
+<?php if (empty($editorPreviewSrc) && count($stickers ?? []) > 0): ?>
+    <script src="/js/editor_sticker_pick_no_base.js"></script>
+<?php endif; ?>
 <?php if (!empty($editorPreviewSrc) && !empty($editorBaseNaturalW) && !empty($editorBaseNaturalH) && count($stickers ?? []) > 0): ?>
     <script src="/js/editor_sticker_placement.js"></script>
 <?php endif; ?>

@@ -6,6 +6,9 @@ class EditorController
 {
     private const EDITOR_SAVED_LIMIT = 12;
 
+    /** Session key: validated sticker filename chosen before base image exists. */
+    private const PENDING_STICKER_SESSION_KEY = 'editor_pending_sticker';
+
     public static function show(): void
     {
         if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
@@ -34,6 +37,7 @@ class EditorController
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
             self::replaceEditorWorkspaceTemp($newFilename);
+            self::syncPendingStickerFromPost();
             $_SESSION['editor_success'] = 'Image loaded into editor workspace.';
             header('Location: /editor');
             exit;
@@ -58,6 +62,7 @@ class EditorController
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
             self::replaceEditorWorkspaceTemp($newFilename);
+            self::syncPendingStickerFromPost();
             $_SESSION['editor_success'] = 'Capture loaded into editor workspace.';
             header('Location: /editor');
             exit;
@@ -262,6 +267,7 @@ class EditorController
 
         $raw = (string) ($_SESSION['editor_temp_image'] ?? '');
         unset($_SESSION['editor_temp_image']);
+        unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
 
         self::unlinkEditorTempFileIfValid($raw);
 
@@ -299,7 +305,12 @@ class EditorController
      *   editorTempImage: string|null,
      *   savedImages: list<array<string, mixed>>,
      *   editorPreviewSrc: string|null,
-     *   canSaveEditorImage: bool
+     *   canSaveEditorImage: bool,
+     *   editorBaseNaturalW: int|null,
+     *   editorBaseNaturalH: int|null,
+     *   editorError: string|null,
+     *   editorSuccess: string|null,
+     *   editorStickerDefault: string
      * }
      */
     private static function editorViewContext(): array
@@ -340,6 +351,12 @@ class EditorController
         unset($_SESSION['editor_error']);
         unset($_SESSION['editor_success']);
 
+        $editorStickerDefault = '';
+        $pending = $_SESSION[self::PENDING_STICKER_SESSION_KEY] ?? null;
+        if (is_string($pending) && $pending !== '' && StickerService::isAllowedStickerFilename($pending)) {
+            $editorStickerDefault = basename($pending);
+        }
+
         return [
             'stickers' => $stickers,
             'editorTempImage' => $editorTempImage,
@@ -350,7 +367,29 @@ class EditorController
             'editorBaseNaturalH' => $editorBaseNaturalH,
             'editorError' => $editorError,
             'editorSuccess' => $editorSuccess,
+            'editorStickerDefault' => $editorStickerDefault,
         ];
+    }
+
+    /**
+     * After successful capture/upload: optional POST sticker sets, clears, or leaves pending (if key absent).
+     */
+    private static function syncPendingStickerFromPost(): void
+    {
+        require_once __DIR__ . '/../service/StickerService.php';
+        if (!array_key_exists('sticker', $_POST)) {
+            return;
+        }
+        $raw = trim((string) ($_POST['sticker'] ?? ''));
+        if ($raw === '') {
+            unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
+            return;
+        }
+        if (StickerService::isAllowedStickerFilename($raw)) {
+            $_SESSION[self::PENDING_STICKER_SESSION_KEY] = basename($raw);
+            return;
+        }
+        unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
     }
 
     private static function unlinkEditorTempFileIfValid(string $raw): void
