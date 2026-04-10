@@ -6,7 +6,10 @@
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = rtrim($path, '/') ?: '/';
 
-if ($path === '/test') {
+if ($path === '/') {
+    header('Location: /gallery', true, 302);
+    exit;
+} else if ($path === '/test') {
     require __DIR__ . '/../controller/TestController.php';
     TestController::handle();
 } else if ($path === '/test-db') {
