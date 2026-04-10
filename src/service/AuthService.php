@@ -201,6 +201,51 @@ class AuthService
     }
 
     /**
+     * #54: resolve user id from raw 64-hex reset token, or null if invalid / expired / unknown.
+     */
+    public static function resolvePasswordResetUserIdFromRawToken(string $rawToken): ?int
+    {
+        if (!preg_match('/^[a-f0-9]{64}$/', $rawToken)) {
+            return null;
+        }
+
+        $tokenHash = hash('sha256', $rawToken, false);
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+
+        return $repo->findUserIdByPasswordResetTokenHashIfValid($tokenHash);
+    }
+
+    /**
+     * #54: set new password and clear password-reset fields. Returns field => error; empty = success.
+     */
+    public static function completePasswordResetForUserId(int $userId, string $newPassword, string $confirmPassword): array
+    {
+        $errors = [];
+
+        $passwordRuleError = self::validateNewPasswordRules($newPassword);
+        if ($passwordRuleError !== null) {
+            $errors['password'] = $passwordRuleError;
+        }
+        if ($newPassword !== $confirmPassword) {
+            $errors['confirm_password'] = 'Passwords do not match.';
+        }
+
+        if ($errors !== []) {
+            return $errors;
+        }
+
+        $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        require_once __DIR__ . '/../repository/UserRepository.php';
+        $repo = new UserRepository();
+        if (!$repo->updatePasswordHashAndClearPasswordResetByUserId($userId, $newHash)) {
+            $errors['form'] = 'Could not update password. Please try again.';
+        }
+
+        return $errors;
+    }
+
+    /**
      * Change password for an authenticated user. Returns field => error; empty = success.
      */
     public static function changePassword(

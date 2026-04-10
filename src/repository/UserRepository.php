@@ -246,4 +246,44 @@ class UserRepository
             ':id' => $userId,
         ]) && $stmt->rowCount() > 0;
     }
+
+    /**
+     * Valid non-expired password reset: stored SHA-256 hex must match $tokenHash (timing-safe compare).
+     */
+    public function findUserIdByPasswordResetTokenHashIfValid(string $tokenHash): ?int
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $now = date('Y-m-d H:i:s');
+        $stmt = $pdo->prepare(
+            'SELECT id, password_reset_token FROM users
+             WHERE password_reset_token IS NOT NULL
+               AND password_reset_expires_at IS NOT NULL
+               AND password_reset_expires_at > :now
+               AND password_reset_token = :token
+             LIMIT 1'
+        );
+        $stmt->execute([':now' => $now, ':token' => $tokenHash]);
+        $row = $stmt->fetch();
+        if ($row === false) {
+            return null;
+        }
+        $stored = (string) $row['password_reset_token'];
+        if (!hash_equals($stored, $tokenHash)) {
+            return null;
+        }
+
+        return (int) $row['id'];
+    }
+
+    public function updatePasswordHashAndClearPasswordResetByUserId(int $userId, string $passwordHash): bool
+    {
+        require_once __DIR__ . '/../db/Database.php';
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare(
+            'UPDATE users SET password_hash = :password_hash, password_reset_token = NULL, password_reset_expires_at = NULL WHERE id = :id'
+        );
+
+        return $stmt->execute([':password_hash' => $passwordHash, ':id' => $userId]) && $stmt->rowCount() > 0;
+    }
 }

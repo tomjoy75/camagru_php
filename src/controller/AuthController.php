@@ -78,6 +78,71 @@ class AuthController
         require __DIR__ . '/../views/layout.php';
     }
 
+    /**
+     * GET /password-reset/confirm?token= (#54).
+     */
+    public static function showPasswordResetConfirm(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        require_once __DIR__ . '/../service/AuthService.php';
+
+        $token = isset($_GET['token']) ? trim((string) $_GET['token']) : '';
+        $userId = AuthService::resolvePasswordResetUserIdFromRawToken($token);
+        if ($userId === null) {
+            $view = 'password_reset_confirm_invalid.php';
+            require __DIR__ . '/../views/layout.php';
+
+            return;
+        }
+
+        $errors = [];
+        $resetToken = $token;
+        $view = 'password_reset_confirm_form.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
+    /**
+     * POST /password-reset/confirm (#54).
+     */
+    public static function submitPasswordResetConfirm(): void
+    {
+        require_once __DIR__ . '/../service/AuthService.php';
+
+        $token = isset($_POST['token']) ? trim((string) $_POST['token']) : '';
+        $userId = AuthService::resolvePasswordResetUserIdFromRawToken($token);
+        if ($userId === null) {
+            header('Content-Type: text/html; charset=utf-8');
+            $view = 'password_reset_confirm_invalid.php';
+            require __DIR__ . '/../views/layout.php';
+
+            return;
+        }
+
+        $password = isset($_POST['password']) ? (string) $_POST['password'] : '';
+        $confirmPassword = isset($_POST['confirm_password']) ? (string) $_POST['confirm_password'] : '';
+
+        $errors = AuthService::completePasswordResetForUserId($userId, $password, $confirmPassword);
+        if ($errors === []) {
+            header('Location: /password-reset/complete', true, 302);
+            exit;
+        }
+
+        header('Content-Type: text/html; charset=utf-8');
+        $resetToken = $token;
+        $view = 'password_reset_confirm_form.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
+    /**
+     * GET /password-reset/complete — PRG success (#54).
+     */
+    public static function showPasswordResetComplete(): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        $view = 'password_reset_confirm_success.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
     public static function register(): void
     {
         require __DIR__ . '/../service/AuthService.php';
