@@ -131,6 +131,9 @@ class AuthService
 
         if (!$repo->updateEmailAndResetVerificationByUserId($userId, $email, $confirmationToken)) {
             $errors['form'] = 'Could not update email. Please try again.';
+        } else {
+            require_once __DIR__ . '/RegistrationConfirmationMailService.php';
+            RegistrationConfirmationMailService::trySendRegistrationConfirmation($email, $confirmationToken);
         }
 
         return ['errors' => $errors, 'email' => $email];
