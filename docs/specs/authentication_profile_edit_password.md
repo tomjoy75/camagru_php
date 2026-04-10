@@ -41,7 +41,7 @@ Success Criteria
 
 - **Success**
   - S1: Authenticated user submits correct current password, valid new password, and matching confirmation; `password_hash` updates in DB and differs from previous value.
-  - S2: After S1, `POST /login` with the same email and the **new** password succeeds (e.g. redirect) for a verified user.
+  - S2: After S1, `POST /login` with the same **username** and the **new** password succeeds (e.g. redirect) for a verified user.
   - S3: After S1, `POST /login` with the **old** password fails safely (no authenticated session for that attempt).
 - **Failure**
   - F1: Wrong current password; DB `password_hash` unchanged; safe error feedback.
@@ -59,20 +59,22 @@ BASE=http://127.0.0.1:8080
 DATABASE_PATH=database/camagru.db
 rm -f cookies.txt
 
+STAMP=$(date +%s)
 # user for password change (initial password must match curl payloads below)
-UA="profile_pwd_a_$(date +%s)@example.com"
+UA="profile_pwd_a_${STAMP}@example.com"
+U_USER="profilepwda${STAMP}"
 INITIAL_PW="Password123!"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/register" \
   -d "email=$UA" \
-  -d "username=profilepwda$(date +%s)" \
+  -d "username=$U_USER" \
   -d "password=$INITIAL_PW" \
   -d "confirm_password=$INITIAL_PW"
 sqlite3 "$DATABASE_PATH" "UPDATE users SET email_verified = 1 WHERE email = '$UA';"
 curl -s -o /dev/null -w "%{http_code}\n" -c cookies.txt -X POST "$BASE/login" \
-  -d "email=$UA" \
+  -d "username=$U_USER" \
   -d "password=$INITIAL_PW"
 
-export UA INITIAL_PW
+export UA U_USER INITIAL_PW
 ```
 
 **Execute tests**
@@ -81,6 +83,7 @@ export UA INITIAL_PW
 BASE=http://127.0.0.1:8080
 DATABASE_PATH=database/camagru.db
 : "${UA:?Run Test Setup (authentication) in the same shell first}"
+: "${U_USER:?Run Test Setup (authentication) in the same shell first}"
 : "${INITIAL_PW:?Run Test Setup (authentication) in the same shell first}"
 # Form field names must match implementation (expected: current_password, password, confirm_password for the new password pair)
 
@@ -121,8 +124,8 @@ NEW_HASH="$(sqlite3 "$DATABASE_PATH" "SELECT password_hash FROM users WHERE id=$
 test "$OLD_HASH" != "$NEW_HASH" && echo "S1 OK"
 
 # S2 / S3: login with new vs old password
-curl -s -o /dev/null -w "login_new:%{http_code}\n" -X POST "$BASE/login" -d "email=$UA" -d "password=$NEW_PW"
-curl -s -o /dev/null -w "login_old:%{http_code}\n" -X POST "$BASE/login" -d "email=$UA" -d "password=$INITIAL_PW"
+curl -s -o /dev/null -w "login_new:%{http_code}\n" -X POST "$BASE/login" -d "username=$U_USER" -d "password=$NEW_PW"
+curl -s -o /dev/null -w "login_old:%{http_code}\n" -X POST "$BASE/login" -d "username=$U_USER" -d "password=$INITIAL_PW"
 
 # E2: register vs profile — short new password rejected both (session still authenticated; DB password is $NEW_PW)
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/register" \

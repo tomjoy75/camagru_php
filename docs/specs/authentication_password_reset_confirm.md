@@ -48,7 +48,7 @@ Let a **non-authenticated** user who received a reset email complete the flow: o
 **Test cases**
 
 - **Success**
-  - **S1:** `GET /password-reset/confirm?token=` with a **valid** 64-hex token (hash + future `password_reset_expires_at` in DB) returns **200** and HTML containing the reset form; `POST` with same token and valid matching passwords returns **302** (PRG) to the success URL; `password_reset_*` cleared; **`POST /login`** with same email + **new** password succeeds; **old** password rejected.
+  - **S1:** `GET /password-reset/confirm?token=` with a **valid** 64-hex token (hash + future `password_reset_expires_at` in DB) returns **200** and HTML containing the reset form; `POST` with same token and valid matching passwords returns **302** (PRG) to the success URL; `password_reset_*` cleared; **`POST /login`** with same **username** + **new** password succeeds; **old** password rejected.
 - **Failure**
   - **F1:** `GET` **missing** `token` → **non-500**, neutral invalid outcome; **no** user row mutated.
   - **F2:** `GET` / `POST` with **malformed** token (wrong length or non-hex) → **non-500**, neutral invalid; **no** `password_hash` change.
@@ -106,7 +106,7 @@ sqlite3 "$DATABASE_PATH" "SELECT (password_reset_token IS NULL OR password_reset
 
 # S1: login with new password (expect 302 to post-login destination)
 curl -s -o /dev/null -w "%{http_code}\n" -c cookies.txt -X POST "$BASE/login" \
-  -d "email=$UE" \
+  -d "username=$USER" \
   -d "password=$NEW_PASS"
 
 # E1: same reset link after success — token consumed; expect neutral invalid (non-500)

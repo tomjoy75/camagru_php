@@ -75,13 +75,13 @@ rm -f /tmp/camagru_u1.cookies /tmp/camagru_u2.cookies
 curl -i -c /tmp/camagru_u1.cookies -X POST "$BASE/register" \
   -d "email=u1@example.com&username=user1&password=Password123!&confirm_password=Password123!"
 curl -i -c /tmp/camagru_u1.cookies -X POST "$BASE/login" \
-  -d "email=u1@example.com&password=Password123!"
+  -d "username=user1&password=Password123!"
 
 # Register + login user 2 (non-owner)
 curl -i -c /tmp/camagru_u2.cookies -X POST "$BASE/register" \
   -d "email=u2@example.com&username=user2&password=Password123!&confirm_password=Password123!"
 curl -i -c /tmp/camagru_u2.cookies -X POST "$BASE/login" \
-  -d "email=u2@example.com&password=Password123!"
+  -d "username=user2&password=Password123!"
 ```
 
 **Execute tests**

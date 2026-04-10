@@ -63,7 +63,7 @@ curl -sS -i -c "$COOKIE_JAR" -X POST "$BASE/register" \
 
 # Login
 curl -sS -i -c "$COOKIE_JAR" -b "$COOKIE_JAR" -X POST "$BASE/login" \
-  -d "email=resetws@example.com" \
+  -d "username=resetwsuser" \
   -d "password=Test1234!" >/tmp/resetws_login.out
 
 # Tiny PNG for upload

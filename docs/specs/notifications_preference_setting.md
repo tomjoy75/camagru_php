@@ -82,7 +82,7 @@ PASS='Testpass1!'
 curl -s -o /dev/null -c cookies.txt -X POST "$BASE/register" \
   -d "email=$EMAIL" -d "username=$USER" -d "password=$PASS" -d "confirm_password=$PASS"
 curl -s -o /dev/null -c cookies.txt -b cookies.txt -L -X POST "$BASE/login" \
-  -d "email=$EMAIL" -d "password=$PASS"
+  -d "username=$USER" -d "password=$PASS"
 
 # Persist email for a later Execute tests run (separate shell)
 echo "$EMAIL" > /tmp/camagru_notif_test_email.txt

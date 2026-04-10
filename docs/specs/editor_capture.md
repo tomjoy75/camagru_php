@@ -58,7 +58,7 @@ curl -sS -i -c "$COOKIE_JAR" -X POST "$BASE/register" \
 
 # Login user
 curl -sS -i -c "$COOKIE_JAR" -b "$COOKIE_JAR" -X POST "$BASE/login" \
-  -d "email=capture.test@example.com" \
+  -d "username=capturetest" \
   -d "password=Test1234!" >/tmp/capture_login.out
 ```
 

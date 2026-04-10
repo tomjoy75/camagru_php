@@ -80,7 +80,7 @@ KNOWN_GOOD_ID=${KNOWN_GOOD_ID:-$(curl -s "$BASE/gallery" | grep -oE 'gallery/ima
 curl -s -o /dev/null -c cookies.txt -X POST "$BASE/register" \
   -d "email=$EMAIL" -d "username=$USER" -d "password=$PASS" -d "confirm_password=$PASS"
 curl -s -o /dev/null -c cookies.txt -b cookies.txt -L -X POST "$BASE/login" \
-  -d "email=$EMAIL" -d "password=$PASS"
+  -d "username=$USER" -d "password=$PASS"
 ```
 
 Adjust **`COMMENT_POST`**, field names **`image_id`** / **`content`**, and **`BASE`** if your server differs.

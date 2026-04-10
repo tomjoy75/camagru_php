@@ -110,7 +110,7 @@ PASS='Testpass1!'
 curl -s -o /dev/null -c cookies_b.txt -X POST "$BASE/register" \
   -d "email=$EMAIL_B" -d "username=$USER_B" -d "password=$PASS" -d "confirm_password=$PASS"
 curl -s -o /dev/null -c cookies_b.txt -b cookies_b.txt -L -X POST "$BASE/login" \
-  -d "email=$EMAIL_B" -d "password=$PASS"
+  -d "username=$USER_B" -d "password=$PASS"
 
 # Owner email must be valid for S1 mail path (adjust local part if collides)
 sqlite3 "$DATABASE_PATH" "UPDATE users SET email = 'owner_${STAMP}@example.com' WHERE id = ${OWNER_ID};"

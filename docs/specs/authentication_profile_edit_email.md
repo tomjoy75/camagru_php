@@ -48,7 +48,7 @@ Success Criteria
   - F1: Invalid email format is rejected; DB email remains unchanged.
   - F2: Email already used by another account is rejected; DB email remains unchanged.
   - F3: Unauthenticated `GET`/`POST` to profile email flow is rejected via existing auth guard.
-  - F4: After successful email change, login with new email is blocked by the existing verified-email rule until reconfirmation.
+  - F4: After successful email change, **`POST /login`** with **username** (unchanged) + password is blocked by the existing verified-email rule until reconfirmation.
 - **Edge**
   - E1: Email with surrounding spaces is normalized then validated (accepted only if valid after normalization).
   - E2: Case-variant duplicate (if app treats email case-insensitively) is rejected consistently.
@@ -61,28 +61,31 @@ BASE=http://127.0.0.1:8080
 DATABASE_PATH=database/camagru.db
 rm -f cookies.txt cookies2.txt
 
+STAMP=$(date +%s)
 # user A register + login (target user for email change)
-UA="profile_email_a_$(date +%s)@example.com"
+UA="profile_email_a_${STAMP}@example.com"
+U_USERA="profilea${STAMP}"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/register" \
   -d "email=$UA" \
-  -d "username=profilea$(date +%s)" \
+  -d "username=$U_USERA" \
   -d "password=Password123!" \
   -d "confirm_password=Password123!"
 # ensure user A can authenticate under verified-email login rule
 sqlite3 "$DATABASE_PATH" "UPDATE users SET email_verified = 1 WHERE email = '$UA';"
 curl -s -o /dev/null -w "%{http_code}\n" -c cookies.txt -X POST "$BASE/login" \
-  -d "email=$UA" \
+  -d "username=$U_USERA" \
   -d "password=Password123!"
 
 # user B register (used to create duplicate-email scenario)
-UB="profile_email_b_$(date +%s)@example.com"
+UB="profile_email_b_${STAMP}@example.com"
+U_USERB="profileb${STAMP}"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/register" \
   -d "email=$UB" \
-  -d "username=profileb$(date +%s)" \
+  -d "username=$U_USERB" \
   -d "password=Password123!" \
   -d "confirm_password=Password123!"
 # keep setup identities available for Execute tests block
-export UA UB
+export UA UB U_USERA U_USERB
 ```
 
 **Execute tests**
@@ -92,6 +95,8 @@ BASE=http://127.0.0.1:8080
 DATABASE_PATH=database/camagru.db
 : "${UA:?Run Test Setup (authentication) in the same shell first}"
 : "${UB:?Run Test Setup (authentication) in the same shell first}"
+: "${U_USERA:?Run Test Setup (authentication) in the same shell first}"
+: "${U_USERB:?Run Test Setup (authentication) in the same shell first}"
 
 # S2: authenticated GET settings profile
 curl -s -o /dev/null -w "%{http_code}\n" -b cookies.txt "$BASE/settings/profile"
@@ -125,10 +130,10 @@ test "$OLD_DUP" = "$NEW_DUP" && echo "F2 OK"
 curl -s -o /dev/null -w "%{http_code}\n" "$BASE/settings/profile"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/settings/profile/email" -d "email=x@example.com"
 
-# F4: login blocked until reconfirmation after successful email change
+# F4: login blocked until reconfirmation after successful email change (username unchanged; email unverified)
 rm -f cookies-post-change.txt
 curl -s -i -c cookies-post-change.txt -X POST "$BASE/login" \
-  -d "email=$NEW_OK" \
+  -d "username=$U_USERA" \
   -d "password=Password123!" | sed -n '1,20p'
 
 # E1: trim/normalize behavior (result depends on final normalization rule)

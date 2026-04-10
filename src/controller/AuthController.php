@@ -19,7 +19,7 @@ class AuthController
     {
         header('Content-Type: text/html; charset=utf-8');
         $errors = [];
-        $email = '';
+        $username = '';
         $view = 'login.php';
         require __DIR__ . '/../views/layout.php';
     }
@@ -28,10 +28,10 @@ class AuthController
     {
         require __DIR__ . '/../service/AuthService.php';
 
-        $email = $_POST['email'] ?? '';
+        $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
 
-        $result = AuthService::login($email, $password);
+        $result = AuthService::login($username, $password);
 
         if ($result['errors'] === []) {
             $_SESSION['user_id'] = $result['user']['id'];

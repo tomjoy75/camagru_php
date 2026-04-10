@@ -57,7 +57,7 @@ curl -s -c cookies.txt -X POST "$BASE/register" \
   -d "email=stickerplace@test.com&username=stickerplace&password=Secret123!&confirm_password=Secret123!"
 
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/login" \
-  -d "email=stickerplace@test.com&password=Secret123!"
+  -d "username=stickerplace&password=Secret123!"
 
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/editor/upload" \
   -F "base_image=@public/stickers/glasses.png"

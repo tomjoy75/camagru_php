@@ -38,7 +38,7 @@ curl -s -c cookies.txt -X POST "$BASE/register" \
 
 # Login
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/login" \
-  -d "email=compose@test.com&password=Secret123!"
+  -d "username=composeuser&password=Secret123!"
 
 # Upload a base image so session has editor_temp_image (required for compose)
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/editor/upload" \

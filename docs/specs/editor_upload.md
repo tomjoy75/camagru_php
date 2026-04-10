@@ -57,7 +57,7 @@ curl -s -c cookies.txt -X POST "$BASE/register" \
 
 # Login (establish session)
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/login" \
-  -d "email=uploader@test.com&password=Secret123!"
+  -d "username=uploader&password=Secret123!"
 ```
 
 **Execute tests**

@@ -61,7 +61,7 @@ curl -sS -i -c "$COOKIE_JAR" -X POST "$BASE/register" \
   -d "confirm_password=Test1234!" >/tmp/tmpcleanup_register.out
 
 curl -sS -i -c "$COOKIE_JAR" -b "$COOKIE_JAR" -X POST "$BASE/login" \
-  -d "email=tmpcleanup@example.com" \
+  -d "username=tmpcleanup" \
   -d "password=Test1234!" >/tmp/tmpcleanup_login.out
 
 printf 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgQmY9WkAAAAASUVORK5CYII=' | base64 -d > /tmp/tmpcleanup_1x1.png

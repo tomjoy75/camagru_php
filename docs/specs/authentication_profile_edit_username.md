@@ -33,7 +33,7 @@ Success Criteria
 
 - **Success**
   - S1 authenticated user submits a valid unused username, receives success response, and DB username is updated.
-  - S2 after successful update, login still works with same email/password and session behavior is unchanged.
+  - S2 after successful update, login still works with the **new** username and same password; session behavior is unchanged.
 - **Failure**
   - F1 unauthenticated GET/POST on profile username endpoints is rejected safely (redirect to login), with no DB update.
   - F2 invalid username format/length is rejected, with no DB update.
@@ -52,19 +52,20 @@ PROFILE_POST="/settings/profile/username"
 
 rm -f cookies_a.txt cookies_b.txt
 
+STAMP=$(date +%s)
 # user A register + login
-A_EMAIL="profile_a_$(date +%s)@example.com"
-A_USERNAME="profile_a_$(date +%s)"
+A_EMAIL="profile_a_${STAMP}@example.com"
+A_USERNAME="profile_a_${STAMP}"
 A_PASSWORD="Password123"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/register" \
   -d "email=$A_EMAIL" -d "username=$A_USERNAME" -d "password=$A_PASSWORD" -d "confirm_password=$A_PASSWORD"
 sqlite3 "$DATABASE_PATH" "UPDATE users SET email_verified = 1 WHERE email = '$A_EMAIL';"
 curl -s -o /dev/null -w "%{http_code}\n" -c cookies_a.txt -X POST "$BASE/login" \
-  -d "email=$A_EMAIL" -d "password=$A_PASSWORD"
+  -d "username=$A_USERNAME" -d "password=$A_PASSWORD"
 
 # user B for uniqueness conflict checks
-B_EMAIL="profile_b_$(date +%s)@example.com"
-B_USERNAME="profile_b_$(date +%s)"
+B_EMAIL="profile_b_${STAMP}@example.com"
+B_USERNAME="profile_b_${STAMP}"
 B_PASSWORD="Password123"
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/register" \
   -d "email=$B_EMAIL" -d "username=$B_USERNAME" -d "password=$B_PASSWORD" -d "confirm_password=$B_PASSWORD"
@@ -82,7 +83,7 @@ sqlite3 "$DATABASE_PATH" "SELECT username FROM users WHERE email = '$A_EMAIL';"
 # S2: login still works after username update
 rm -f cookies_a2.txt
 curl -s -o /dev/null -w "%{http_code}\n" -c cookies_a2.txt -X POST "$BASE/login" \
-  -d "email=$A_EMAIL" -d "password=$A_PASSWORD"
+  -d "username=$NEW_USERNAME" -d "password=$A_PASSWORD"
 
 # F1: unauthenticated requests rejected, no update
 curl -s -o /dev/null -w "%{http_code}\n" "$BASE$PROFILE_GET"

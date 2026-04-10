@@ -54,7 +54,7 @@ curl -s -c cookies.txt -X POST "$BASE/register" \
 
 # Login
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/login" \
-  -d "email=scalefit@test.com&password=Secret123!"
+  -d "username=scalefituser&password=Secret123!"
 
 # Tiny base (40×40) so typical stickers are larger — requires PHP CLI with GD
 php -r '$im = imagecreatetruecolor(40, 40); $g = imagecolorallocate($im, 220, 220, 220); imagefill($im, 0, 0, $g); imagepng($im, "tiny_base.png"); imagedestroy($im);'
@@ -93,7 +93,7 @@ rm -f cookies.txt
 curl -s -c cookies.txt -X POST "$BASE/register" \
   -d "email=scalefit2@test.com&username=scalefituser2&password=Secret123!&confirm_password=Secret123!"
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/login" \
-  -d "email=scalefit2@test.com&password=Secret123!"
+  -d "username=scalefituser2&password=Secret123!"
 curl -s -c cookies.txt -b cookies.txt -X POST "$BASE/editor/upload" \
   -F "base_image=@public/stickers/glasses.png"
 curl -s -o /dev/null -w "%{http_code}\n" -b cookies.txt -X POST "$BASE/editor/compose" \

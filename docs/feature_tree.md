@@ -22,13 +22,13 @@
 ### Feature: Login
 
 - **Subfeature: Login form (UI)**  
-  Email + password inputs; error display area for invalid credentials.
+  Username + password inputs; error display area for invalid credentials.
 - **Subfeature: Credential validation**  
-  Email required; user lookup by email; password verification with `password_verify`.
+  Username required; user lookup by username (`UserRepository::findByUsername`); password verification with `password_verify`.
 - **Subfeature: Session management**  
   Store authenticated user id in session on success; central session start in `public/index.php`.
 - **Subfeature: Error handling**  
-  Generic “invalid email or password” message.
+  Generic “invalid username or password” message.
 
 ### Feature: Logout
 

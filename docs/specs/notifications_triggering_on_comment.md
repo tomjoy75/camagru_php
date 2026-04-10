@@ -86,7 +86,7 @@ PASS='Testpass1!'
 curl -s -o /dev/null -c cookies_b.txt -X POST "$BASE/register" \
   -d "email=$EMAIL_B" -d "username=$USER_B" -d "password=$PASS" -d "confirm_password=$PASS"
 curl -s -o /dev/null -c cookies_b.txt -b cookies_b.txt -L -X POST "$BASE/login" \
-  -d "email=$EMAIL_B" -d "password=$PASS"
+  -d "username=$USER_B" -d "password=$PASS"
 ```
 
 Requires at least one `images` row and a running server. If `IMAGE_ID` is empty, skip HTTP blocks.
