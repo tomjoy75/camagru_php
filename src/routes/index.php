@@ -2,6 +2,9 @@
 /**
  * Router: matches request path and calls the right controller.
  * Does not send the response; controllers do.
+ *
+ * Dev-only: GET /test and /test-db are registered only when CAMAGRU_DEV_ENDPOINTS=1
+ * is set in the process environment (omit for evaluation / production).
  */
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $path = rtrim($path, '/') ?: '/';
@@ -9,10 +12,10 @@ $path = rtrim($path, '/') ?: '/';
 if ($path === '/') {
     header('Location: /gallery', true, 302);
     exit;
-} else if ($path === '/test') {
+} else if ($path === '/test' && getenv('CAMAGRU_DEV_ENDPOINTS') === '1') {
     require __DIR__ . '/../controller/TestController.php';
     TestController::handle();
-} else if ($path === '/test-db') {
+} else if ($path === '/test-db' && getenv('CAMAGRU_DEV_ENDPOINTS') === '1') {
     require __DIR__ . '/../controller/TestDbController.php';
     TestDbController::handle();
 } else if ($path === '/register' && $_SERVER['REQUEST_METHOD'] === 'GET') {
