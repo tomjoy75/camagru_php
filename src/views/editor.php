@@ -131,7 +131,12 @@
             <form method="post" action="/editor/capture" id="editor-capture-form" class="flex flex-col gap-2">
                 <input type="hidden" name="base_image_data" id="editor-capture-input" value="">
                 <input type="hidden" name="sticker" id="editor-capture-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-                <button type="submit" id="editor-capture-button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                <?php
+                $editorCaptureDisabledNoSticker = empty($editorPreviewSrc)
+                    && count($stickers ?? []) > 0
+                    && trim((string) ($editorStickerDefault ?? '')) === '';
+                ?>
+                <button type="submit" id="editor-capture-button" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"<?php echo $editorCaptureDisabledNoSticker ? ' disabled' : ''; ?>>
                     Capture
                 </button>
             </form>

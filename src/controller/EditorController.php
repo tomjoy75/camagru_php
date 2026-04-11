@@ -227,6 +227,7 @@ class EditorController
         }
 
         unset($_SESSION['editor_temp_image']);
+        unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
 
         header('Location: /editor');
         exit;

@@ -9,6 +9,8 @@
         return;
     }
 
+    var webcamCaptureAllowed = false;
+
     function showFallback(message) {
         if (fallback && preview) {
             fallback.textContent = message;
@@ -17,18 +19,35 @@
         }
     }
 
+    function syncCaptureEnabled() {
+        var stickerGated = !!document.getElementById('editor-no-base-sticker-picks');
+        var hidden = document.getElementById('editor-capture-sticker');
+        var stickerVal = hidden ? (hidden.value || '').trim() : '';
+        var stickerOk = stickerVal !== '';
+        var wantEnable = webcamCaptureAllowed && (!stickerGated || stickerOk);
+        captureButton.disabled = !wantEnable;
+        if (wantEnable) {
+            captureButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            captureButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
     function disableCapture(message) {
-        captureButton.disabled = true;
-        captureButton.classList.add('opacity-50', 'cursor-not-allowed');
+        webcamCaptureAllowed = false;
         if (message) {
             showFallback(message);
         }
+        syncCaptureEnabled();
     }
 
     if (!preview || !fallback) {
         disableCapture('Capture is unavailable while an uploaded image is shown.');
         return;
     }
+
+    document.addEventListener('editor-capture-sticker-changed', syncCaptureEnabled);
+    syncCaptureEnabled();
 
     if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
         disableCapture('Webcam preview is not supported by this browser.');
@@ -41,6 +60,8 @@
             preview.srcObject = stream;
             preview.classList.remove('hidden');
             fallback.classList.add('hidden');
+            webcamCaptureAllowed = true;
+            syncCaptureEnabled();
         })
         .catch(function () {
             disableCapture('Unable to access webcam preview. Check camera permissions.');

@@ -540,7 +540,7 @@ The **test plan** is produced in **§7.4** and reviewed at **§7.5**; this secti
 This is the **execution** step for the tracker: **§8 Active issue enrichment** explains *why* and *what* to add; **this section** is where you run the operational prompt once the spec (including tests) is ready **after** the §7.5 gate.
 
 Align the **tracker issue** with the spec:  
-  
+
 - If **no** issue exists yet for this unit of work, **create** one using the prompt below.  
 - If an issue **already** exists (e.g. from backlog projection in §4.5), **update** it—add or refresh the body—instead of opening a duplicate.
 
@@ -564,6 +564,7 @@ Prepare an **active issue update** for this feature:
 Do **not** write application code. Do **not** modify repository files. Wait for explicit user confirmation before any implementation or application code changes.
 
 ```
+
 ```
 update the issue
 ```
@@ -607,8 +608,9 @@ Phase A — do not change application code yet:
 
 Phase B — after I confirm: implement strictly within scope, following the plan and ARCHITECT.md / WORKFLOW Core Principles. Run the spec’s checks as you go; fix only within scope if something fails.
 ```
+
 ```
-Implement now
+Implement now (and don't commit)
 ```
 
 ---

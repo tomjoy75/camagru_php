@@ -16,6 +16,10 @@
         }
     }
 
+    function notifyStickerChanged() {
+        document.dispatchEvent(new CustomEvent('editor-capture-sticker-changed'));
+    }
+
     function onPickClick(ev) {
         var btn = ev.currentTarget;
         var name = btn.getAttribute('data-sticker');
@@ -25,6 +29,7 @@
         captureHidden.value = name;
         uploadHidden.value = name;
         setPressed(name);
+        notifyStickerChanged();
     }
 
     var picks = root.querySelectorAll('.editor-sticker-pick');
@@ -36,4 +41,5 @@
     if (initial !== '' && initial === (uploadHidden.value || '').trim()) {
         setPressed(initial);
     }
+    notifyStickerChanged();
 })();
