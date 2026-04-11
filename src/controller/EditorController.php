@@ -9,6 +9,12 @@ class EditorController
     /** Session key: validated sticker filename chosen before base image exists. */
     private const PENDING_STICKER_SESSION_KEY = 'editor_pending_sticker';
 
+    /**
+     * Basename under public/tmp/ for which a successful POST /editor/compose has run for the current workspace.
+     * Cleared whenever the workspace temp is replaced or removed.
+     */
+    private const COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY = 'editor_workspace_compose_ok_basename';
+
     public static function show(): void
     {
         if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
@@ -128,6 +134,10 @@ class EditorController
 
         if (isset($result['filename'])) {
             self::replaceEditorWorkspaceTemp($result['filename']);
+            $composedBase = basename((string) $result['filename']);
+            if ($composedBase === (string) $result['filename'] && self::isValidEditorTempFilename($composedBase)) {
+                $_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY] = $composedBase;
+            }
             header('Location: /editor');
             exit;
         }
@@ -170,6 +180,16 @@ class EditorController
         if (!is_file($tmpPath)) {
             extract(array_merge(self::editorViewContext(), [
                 'errors' => ['save' => 'Nothing to save (image is not in the editor workspace).'],
+            ]), EXTR_SKIP);
+            header('Content-Type: text/html; charset=utf-8');
+            $view = 'editor.php';
+            require __DIR__ . '/../views/layout.php';
+            return;
+        }
+
+        if (!self::isEditorWorkspaceComposeAuthorizedForSessionTemp()) {
+            extract(array_merge(self::editorViewContext(), [
+                'errors' => ['save' => 'To save to your gallery, apply a sticker with Compose on the server first.'],
             ]), EXTR_SKIP);
             header('Content-Type: text/html; charset=utf-8');
             $view = 'editor.php';
@@ -227,6 +247,7 @@ class EditorController
         }
 
         unset($_SESSION['editor_temp_image']);
+        unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
 
         header('Location: /editor');
         exit;
@@ -268,6 +289,7 @@ class EditorController
         $raw = (string) ($_SESSION['editor_temp_image'] ?? '');
         unset($_SESSION['editor_temp_image']);
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
+        unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
 
         self::unlinkEditorTempFileIfValid($raw);
 
@@ -281,6 +303,7 @@ class EditorController
      */
     private static function replaceEditorWorkspaceTemp(string $newFilename): void
     {
+        unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
         $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
         $_SESSION['editor_temp_image'] = $newFilename;
         $newBase = basename((string) $newFilename);
@@ -337,7 +360,7 @@ class EditorController
                 $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
                 if (is_file($tmpPath)) {
                     $editorPreviewSrc = '/tmp/' . $base;
-                    $canSaveEditorImage = true;
+                    $canSaveEditorImage = self::isEditorWorkspaceComposeAuthorizedForSessionTemp();
                     $info = @getimagesize($tmpPath);
                     if ($info !== false) {
                         $editorBaseNaturalW = (int) $info[0];
@@ -390,6 +413,20 @@ class EditorController
             return;
         }
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
+    }
+
+    private static function isEditorWorkspaceComposeAuthorizedForSessionTemp(): bool
+    {
+        $raw = $_SESSION['editor_temp_image'] ?? '';
+        if ($raw === null || $raw === '') {
+            return false;
+        }
+        $base = basename((string) $raw);
+        if ($base !== (string) $raw || !self::isValidEditorTempFilename($base)) {
+            return false;
+        }
+        $authorized = $_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY] ?? null;
+        return is_string($authorized) && $authorized === $base;
     }
 
     private static function unlinkEditorTempFileIfValid(string $raw): void
