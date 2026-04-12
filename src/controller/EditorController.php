@@ -5,6 +5,10 @@
 class EditorController
 {
     private const EDITOR_SAVED_LIMIT = 12;
+    private const EDITOR_STATE_SESSION_KEY = 'editor_workspace_state';
+    private const EDITOR_STATE_EMPTY = 'EMPTY';
+    private const EDITOR_STATE_BASE_READY = 'BASE_READY';
+    private const EDITOR_STATE_COMPOSED_READY = 'COMPOSED_READY';
 
     /** Session key: validated sticker filename chosen before base image exists. */
     private const PENDING_STICKER_SESSION_KEY = 'editor_pending_sticker';
@@ -36,6 +40,17 @@ class EditorController
             exit;
         }
 
+        $hasWorkspaceBase = (string) ($_SESSION['editor_temp_image'] ?? '') !== '';
+        if (!$hasWorkspaceBase) {
+            require_once __DIR__ . '/../service/StickerService.php';
+            $sticker = trim((string) ($_POST['sticker'] ?? ''));
+            if ($sticker === '' || !StickerService::isAllowedStickerFilename($sticker)) {
+                $_SESSION['editor_error'] = 'Select a valid sticker before uploading a new base image.';
+                header('Location: /editor');
+                exit;
+            }
+        }
+
         require __DIR__ . '/../service/ImageUploadService.php';
         $file = $_FILES['base_image'] ?? [];
         $result = ImageUploadService::processUpload($file);
@@ -43,6 +58,7 @@ class EditorController
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
             self::replaceEditorWorkspaceTemp($newFilename);
+            self::setEditorWorkspaceState(self::EDITOR_STATE_BASE_READY);
             self::syncPendingStickerFromPost();
             $_SESSION['editor_success'] = 'Image loaded into editor workspace.';
             header('Location: /editor');
@@ -68,6 +84,7 @@ class EditorController
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
             self::replaceEditorWorkspaceTemp($newFilename);
+            self::setEditorWorkspaceState(self::EDITOR_STATE_BASE_READY);
             self::syncPendingStickerFromPost();
             $_SESSION['editor_success'] = 'Capture loaded into editor workspace.';
             header('Location: /editor');
@@ -138,6 +155,7 @@ class EditorController
             if ($composedBase === (string) $result['filename'] && self::isValidEditorTempFilename($composedBase)) {
                 $_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY] = $composedBase;
             }
+            self::setEditorWorkspaceState(self::EDITOR_STATE_COMPOSED_READY);
             header('Location: /editor');
             exit;
         }
@@ -149,6 +167,13 @@ class EditorController
     {
         if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
             header('Location: /login');
+            exit;
+        }
+
+        $editorState = self::getNormalizedEditorState($_SESSION['editor_temp_image'] ?? null);
+        if ($editorState !== self::EDITOR_STATE_COMPOSED_READY) {
+            $_SESSION['editor_error'] = 'Apply a sticker before saving the image.';
+            header('Location: /editor');
             exit;
         }
 
@@ -249,6 +274,7 @@ class EditorController
         unset($_SESSION['editor_temp_image']);
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
         unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
+        self::setEditorWorkspaceState(self::EDITOR_STATE_EMPTY);
 
         header('Location: /editor');
         exit;
@@ -289,6 +315,7 @@ class EditorController
 
         $raw = (string) ($_SESSION['editor_temp_image'] ?? '');
         unset($_SESSION['editor_temp_image']);
+        self::setEditorWorkspaceState(self::EDITOR_STATE_EMPTY);
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
         unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
 
@@ -327,6 +354,7 @@ class EditorController
      * @return array{
      *   stickers: list<array<string, mixed>>,
      *   editorTempImage: string|null,
+     *   editorState: string,
      *   savedImages: list<array<string, mixed>>,
      *   editorPreviewSrc: string|null,
      *   canSaveEditorImage: bool,
@@ -347,6 +375,7 @@ class EditorController
         if ($editorTempImage === '') {
             $editorTempImage = null;
         }
+        $editorState = self::getNormalizedEditorState($editorTempImage);
 
         $repo = new ImageRepository();
         $savedImages = $repo->findRecentByUserId((int) $_SESSION['user_id'], self::EDITOR_SAVED_LIMIT);
@@ -361,7 +390,6 @@ class EditorController
                 $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
                 if (is_file($tmpPath)) {
                     $editorPreviewSrc = '/tmp/' . $base;
-                    $canSaveEditorImage = self::isEditorWorkspaceComposeAuthorizedForSessionTemp();
                     $info = @getimagesize($tmpPath);
                     if ($info !== false) {
                         $editorBaseNaturalW = (int) $info[0];
@@ -370,6 +398,7 @@ class EditorController
                 }
             }
         }
+        $canSaveEditorImage = $editorState === self::EDITOR_STATE_COMPOSED_READY;
         $editorError = $_SESSION['editor_error'] ?? null;
         $editorSuccess = $_SESSION['editor_success'] ?? null;
         unset($_SESSION['editor_error']);
@@ -384,6 +413,7 @@ class EditorController
         return [
             'stickers' => $stickers,
             'editorTempImage' => $editorTempImage,
+            'editorState' => $editorState,
             'savedImages' => $savedImages,
             'editorPreviewSrc' => $editorPreviewSrc,
             'canSaveEditorImage' => $canSaveEditorImage,
@@ -428,6 +458,50 @@ class EditorController
         }
         $authorized = $_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY] ?? null;
         return is_string($authorized) && $authorized === $base;
+    }
+
+    private static function getNormalizedEditorState(?string $editorTempImage): string
+    {
+        if (!self::hasValidWorkspaceTempImage($editorTempImage)) {
+            return self::EDITOR_STATE_EMPTY;
+        }
+
+        $raw = $_SESSION[self::EDITOR_STATE_SESSION_KEY] ?? null;
+        if ($raw === self::EDITOR_STATE_COMPOSED_READY) {
+            return self::EDITOR_STATE_COMPOSED_READY;
+        }
+
+        return self::EDITOR_STATE_BASE_READY;
+    }
+
+    private static function setEditorWorkspaceState(string $state): void
+    {
+        if ($state === self::EDITOR_STATE_EMPTY) {
+            unset($_SESSION[self::EDITOR_STATE_SESSION_KEY]);
+            return;
+        }
+
+        if ($state === self::EDITOR_STATE_BASE_READY || $state === self::EDITOR_STATE_COMPOSED_READY) {
+            $_SESSION[self::EDITOR_STATE_SESSION_KEY] = $state;
+            return;
+        }
+
+        unset($_SESSION[self::EDITOR_STATE_SESSION_KEY]);
+    }
+
+    private static function hasValidWorkspaceTempImage(?string $editorTempImage): bool
+    {
+        if (!is_string($editorTempImage) || $editorTempImage === '') {
+            return false;
+        }
+
+        $base = basename($editorTempImage);
+        if ($base !== $editorTempImage || !self::isValidEditorTempFilename($base)) {
+            return false;
+        }
+
+        $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
+        return is_file($tmpPath);
     }
 
     private static function unlinkEditorTempFileIfValid(string $raw): void

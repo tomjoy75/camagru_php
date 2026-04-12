@@ -1,3 +1,14 @@
+<?php
+$stickers = $stickers ?? [];
+$editorState = is_string($editorState ?? null) ? $editorState : 'EMPTY';
+$isEmptyEditorState = $editorState === 'EMPTY';
+$hasWorkspaceEditorState = $editorState === 'BASE_READY' || $editorState === 'COMPOSED_READY';
+$canRenderWorkspaceImage = !empty($editorPreviewSrc);
+$canRenderComposeForm = $hasWorkspaceEditorState
+    && !empty($editorBaseNaturalW)
+    && !empty($editorBaseNaturalH)
+    && count($stickers) > 0;
+?>
 <div class="w-full grid grid-cols-1 lg:grid-cols-5 gap-6">
     <section class="lg:col-span-4 space-y-4">
         <?php if (!empty($editorSuccess)): ?>
@@ -13,33 +24,37 @@
         <?php endif; ?>
 
         <!-- Preview: uploaded temp image or webcam placeholder -->
-        <?php if (!empty($editorPreviewSrc)): ?>
+        <?php if ($hasWorkspaceEditorState): ?>
             <div id="editor-preview-host" class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
-                <div id="editor-image-wrap" class="relative h-full w-full min-h-0">
-                    <img
-                        id="editor-base-preview-img"
-                        src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>"
-                        alt="Uploaded preview"
-                        <?php if (!empty($editorBaseNaturalW) && !empty($editorBaseNaturalH)): ?>
-                            width="<?php echo (int) $editorBaseNaturalW; ?>"
-                            height="<?php echo (int) $editorBaseNaturalH; ?>"
-                        <?php endif; ?>
-                        class="block h-full w-full object-contain"
-                    >
-                    <div
-                        id="editor-sticker-stage"
-                        class="absolute top-0 left-0 z-10 hidden cursor-move pointer-events-auto"
-                        aria-hidden="true"
-                    >
+                <?php if ($canRenderWorkspaceImage): ?>
+                    <div id="editor-image-wrap" class="relative h-full w-full min-h-0">
                         <img
-                            id="editor-sticker-overlay"
-                            src=""
-                            alt=""
-                            class="absolute top-0 left-0 block max-w-none pointer-events-none"
-                            draggable="false"
+                            id="editor-base-preview-img"
+                            src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>"
+                            alt="Uploaded preview"
+                            <?php if (!empty($editorBaseNaturalW) && !empty($editorBaseNaturalH)): ?>
+                                width="<?php echo (int) $editorBaseNaturalW; ?>"
+                                height="<?php echo (int) $editorBaseNaturalH; ?>"
+                            <?php endif; ?>
+                            class="block h-full w-full object-contain"
                         >
+                        <div
+                            id="editor-sticker-stage"
+                            class="absolute top-0 left-0 z-10 hidden cursor-move pointer-events-auto"
+                            aria-hidden="true"
+                        >
+                            <img
+                                id="editor-sticker-overlay"
+                                src=""
+                                alt=""
+                                class="absolute top-0 left-0 block max-w-none pointer-events-none"
+                                draggable="false"
+                            >
+                        </div>
                     </div>
-                </div>
+                <?php else: ?>
+                    <p class="text-slate-500">Workspace image unavailable.</p>
+                <?php endif; ?>
             </div>
         <?php else: ?>
             <div id="editor-preview-host" class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
@@ -58,8 +73,7 @@
         <!-- Stickers -->
         <div class="bg-slate-100 rounded-lg border border-slate-200 p-4">
             <p class="text-sm font-medium text-slate-600 mb-2">Stickers</p>
-            <?php $stickers = $stickers ?? []; ?>
-            <?php if (!empty($editorPreviewSrc) && !empty($editorBaseNaturalW) && !empty($editorBaseNaturalH) && count($stickers) > 0): ?>
+            <?php if ($canRenderComposeForm): ?>
                 <form id="editor-compose-form" method="post" action="/editor/compose" class="space-y-3">
                     <input type="hidden" name="sticker" id="editor-compose-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="x" id="editor-compose-x" value="0">
@@ -94,13 +108,19 @@
                             <input type="range" id="editor-angle-range" class="flex-1 min-w-0" min="-180" max="180" value="0" step="1">
                         </label>
                     </div>
-                    <button type="submit" class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                    <?php $composeSubmitDisabled = trim((string) ($editorStickerDefault ?? '')) === ''; ?>
+                    <button
+                        type="submit"
+                        id="editor-compose-submit"
+                        class="rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2<?php echo $composeSubmitDisabled ? ' opacity-50 cursor-not-allowed' : ''; ?>"
+                        <?php echo $composeSubmitDisabled ? ' disabled aria-disabled="true"' : ''; ?>
+                    >
                         Apply sticker
                     </button>
                 </form>
             <?php elseif (count($stickers) === 0): ?>
                 <p class="text-sm text-slate-500">No stickers available.</p>
-            <?php else: ?>
+            <?php elseif ($isEmptyEditorState): ?>
                 <p class="text-sm text-slate-500 mb-2">Choose a sticker, then capture or upload a base image. You can change it after the image loads.</p>
                 <div id="editor-no-base-sticker-picks" class="flex flex-wrap gap-3">
                     <?php foreach ($stickers as $sticker): ?>
@@ -120,6 +140,8 @@
                         </button>
                     <?php endforeach; ?>
                 </div>
+            <?php else: ?>
+                <p class="text-sm text-slate-500">Sticker placement is unavailable for this workspace image.</p>
             <?php endif; ?>
             <?php if (isset($errors['compose'])): ?>
                 <p class="mt-2 text-red-600 text-sm"><?php echo htmlspecialchars($errors['compose'], ENT_QUOTES, 'UTF-8'); ?></p>
@@ -140,17 +162,16 @@
                     Capture
                 </button>
             </form>
-            <form method="post" action="/editor/upload" id="editor-upload-form" enctype="multipart/form-data" class="flex flex-col gap-2">
+            <form method="post" action="/editor/upload" id="editor-upload-form" enctype="multipart/form-data" class="flex flex-col gap-2" data-editor-state="<?php echo htmlspecialchars($editorState, ENT_QUOTES, 'UTF-8'); ?>">
                 <input type="hidden" name="sticker" id="editor-upload-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                 <?php if (isset($errors['upload'])): ?>
                     <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['upload'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <?php endif; ?>
                 <div class="flex items-center">
                     <label class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer text-center">
-                        <input type="file" name="base_image" accept="image/*" class="sr-only">
+                        <input type="file" name="base_image" id="editor-upload-input" accept="image/*" class="sr-only">
                         Upload image
                     </label>
-                    <button type="submit" class="ml-2 rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">Upload</button>
                 </div>
             </form>
             <?php if (!empty($canSaveEditorImage)): ?>
@@ -163,7 +184,7 @@
             <?php elseif (isset($errors['save'])): ?>
                 <p class="text-red-600 text-sm self-center"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
             <?php endif; ?>
-            <?php if (!empty($editorPreviewSrc)): ?>
+            <?php if ($hasWorkspaceEditorState): ?>
                 <form method="post" action="/editor/reset" class="flex flex-col gap-2">
                     <button type="submit" class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
                         <?php echo htmlspecialchars('Reset workspace', ENT_QUOTES, 'UTF-8'); ?>
@@ -208,9 +229,10 @@
 </div>
 
 <script src="/js/editor_webcam_preview.js"></script>
-<?php if (empty($editorPreviewSrc) && count($stickers ?? []) > 0): ?>
+<script src="/js/editor_upload_autosubmit.js"></script>
+<?php if ($isEmptyEditorState && count($stickers) > 0): ?>
     <script src="/js/editor_sticker_pick_no_base.js"></script>
 <?php endif; ?>
-<?php if (!empty($editorPreviewSrc) && !empty($editorBaseNaturalW) && !empty($editorBaseNaturalH) && count($stickers ?? []) > 0): ?>
+<?php if ($canRenderComposeForm): ?>
     <script src="/js/editor_sticker_placement.js"></script>
 <?php endif; ?>

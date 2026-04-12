@@ -16,6 +16,7 @@
     var hiddenY = document.getElementById('editor-compose-y');
     var hiddenScale = document.getElementById('editor-compose-scale');
     var hiddenAngle = document.getElementById('editor-compose-angle');
+    var applyButton = document.getElementById('editor-compose-submit');
 
     var baseW = baseImg.naturalWidth;
     var baseH = baseImg.naturalHeight;
@@ -124,6 +125,17 @@
         hiddenAngle.value = String(readAngle());
     }
 
+    function syncApplyDisabled() {
+        if (!applyButton) {
+            return;
+        }
+        var disabled = !hiddenSticker || hiddenSticker.value.trim() === '';
+        applyButton.disabled = disabled;
+        applyButton.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        applyButton.classList.toggle('opacity-50', disabled);
+        applyButton.classList.toggle('cursor-not-allowed', disabled);
+    }
+
     function syncOverlayVisual() {
         if (!overlay.src || stickerNw <= 0) {
             stage.classList.add('hidden');
@@ -174,6 +186,7 @@
         for (var i = 0; i < picks.length; i++) {
             picks[i].setAttribute('aria-pressed', picks[i] === btn ? 'true' : 'false');
         }
+        syncApplyDisabled();
         overlay.onload = function () {
             overlay.onload = null;
             stickerNw = overlay.naturalWidth;
@@ -204,6 +217,7 @@
             }
         }
     }
+    syncApplyDisabled();
 
     scaleRange.addEventListener('input', function () {
         syncHiddens();
