@@ -356,6 +356,7 @@ class EditorController
      *   editorTempImage: string|null,
      *   editorState: string,
      *   savedImages: list<array<string, mixed>>,
+     *   editorState: 'EMPTY'|'BASE_READY'|'COMPOSED_READY',
      *   editorPreviewSrc: string|null,
      *   canSaveEditorImage: bool,
      *   editorBaseNaturalW: int|null,
@@ -381,14 +382,15 @@ class EditorController
         $savedImages = $repo->findRecentByUserId((int) $_SESSION['user_id'], self::EDITOR_SAVED_LIMIT);
 
         $editorPreviewSrc = null;
-        $canSaveEditorImage = false;
         $editorBaseNaturalW = null;
         $editorBaseNaturalH = null;
+        $hasWorkspaceImage = false;
         if ($editorTempImage !== null && $editorTempImage !== '') {
             $base = basename((string) $editorTempImage);
             if ($base === (string) $editorTempImage && self::isValidEditorTempFilename($base)) {
                 $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
                 if (is_file($tmpPath)) {
+                    $hasWorkspaceImage = true;
                     $editorPreviewSrc = '/tmp/' . $base;
                     $info = @getimagesize($tmpPath);
                     if ($info !== false) {
@@ -415,6 +417,7 @@ class EditorController
             'editorTempImage' => $editorTempImage,
             'editorState' => $editorState,
             'savedImages' => $savedImages,
+            'editorState' => $editorState,
             'editorPreviewSrc' => $editorPreviewSrc,
             'canSaveEditorImage' => $canSaveEditorImage,
             'editorBaseNaturalW' => $editorBaseNaturalW,

@@ -1,10 +1,14 @@
 <?php
 $stickers = $stickers ?? [];
 $editorState = is_string($editorState ?? null) ? $editorState : 'EMPTY';
-$isEmptyEditorState = $editorState === 'EMPTY';
-$hasWorkspaceEditorState = $editorState === 'BASE_READY' || $editorState === 'COMPOSED_READY';
+if (!in_array($editorState, ['EMPTY', 'BASE_READY', 'COMPOSED_READY'], true)) {
+    $editorState = 'EMPTY';
+}
+$isEmptyState = ($editorState === 'EMPTY');
+$isWorkspaceState = ($editorState === 'BASE_READY' || $editorState === 'COMPOSED_READY');
+$isComposedReadyState = ($editorState === 'COMPOSED_READY');
 $canRenderWorkspaceImage = !empty($editorPreviewSrc);
-$canRenderComposeForm = $hasWorkspaceEditorState
+$canRenderComposeForm = $isWorkspaceState
     && !empty($editorBaseNaturalW)
     && !empty($editorBaseNaturalH)
     && count($stickers) > 0;
@@ -24,14 +28,14 @@ $canRenderComposeForm = $hasWorkspaceEditorState
         <?php endif; ?>
 
         <!-- Preview: uploaded temp image or webcam placeholder -->
-        <?php if ($hasWorkspaceEditorState): ?>
+        <?php if ($isWorkspaceState): ?>
             <div id="editor-preview-host" class="bg-slate-200 rounded-lg aspect-video flex items-center justify-center text-slate-500 overflow-hidden">
                 <?php if ($canRenderWorkspaceImage): ?>
                     <div id="editor-image-wrap" class="relative h-full w-full min-h-0">
                         <img
                             id="editor-base-preview-img"
-                            src="<?php echo htmlspecialchars($editorPreviewSrc, ENT_QUOTES, 'UTF-8'); ?>"
-                            alt="Uploaded preview"
+                            src="<?php echo htmlspecialchars((string) ($editorPreviewSrc ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                            alt="Workspace preview"
                             <?php if (!empty($editorBaseNaturalW) && !empty($editorBaseNaturalH)): ?>
                                 width="<?php echo (int) $editorBaseNaturalW; ?>"
                                 height="<?php echo (int) $editorBaseNaturalH; ?>"
@@ -174,7 +178,7 @@ $canRenderComposeForm = $hasWorkspaceEditorState
                     </label>
                 </div>
             </form>
-            <?php if (!empty($canSaveEditorImage)): ?>
+            <?php if ($isComposedReadyState): ?>
                 <form method="post" action="/editor/save" class="flex flex-col gap-2">
                     <?php if (isset($errors['save'])): ?>
                         <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
@@ -184,7 +188,7 @@ $canRenderComposeForm = $hasWorkspaceEditorState
             <?php elseif (isset($errors['save'])): ?>
                 <p class="text-red-600 text-sm self-center"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
             <?php endif; ?>
-            <?php if ($hasWorkspaceEditorState): ?>
+            <?php if ($isWorkspaceState): ?>
                 <form method="post" action="/editor/reset" class="flex flex-col gap-2">
                     <button type="submit" class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
                         <?php echo htmlspecialchars('Reset workspace', ENT_QUOTES, 'UTF-8'); ?>
@@ -230,7 +234,7 @@ $canRenderComposeForm = $hasWorkspaceEditorState
 
 <script src="/js/editor_webcam_preview.js"></script>
 <script src="/js/editor_upload_autosubmit.js"></script>
-<?php if ($isEmptyEditorState && count($stickers) > 0): ?>
+<?php if ($isEmptyState && count($stickers) > 0): ?>
     <script src="/js/editor_sticker_pick_no_base.js"></script>
 <?php endif; ?>
 <?php if ($canRenderComposeForm): ?>
