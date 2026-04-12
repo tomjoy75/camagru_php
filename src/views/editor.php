@@ -157,17 +157,16 @@ $canRenderComposeForm = $hasWorkspaceEditorState
                     Capture
                 </button>
             </form>
-            <form method="post" action="/editor/upload" id="editor-upload-form" enctype="multipart/form-data" class="flex flex-col gap-2">
+            <form method="post" action="/editor/upload" id="editor-upload-form" enctype="multipart/form-data" class="flex flex-col gap-2" data-editor-state="<?php echo htmlspecialchars($editorState, ENT_QUOTES, 'UTF-8'); ?>">
                 <input type="hidden" name="sticker" id="editor-upload-sticker" value="<?php echo htmlspecialchars($editorStickerDefault ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                 <?php if (isset($errors['upload'])): ?>
                     <p class="text-red-600 text-sm"><?php echo htmlspecialchars($errors['upload'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <?php endif; ?>
                 <div class="flex items-center">
                     <label class="rounded border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 cursor-pointer text-center">
-                        <input type="file" name="base_image" accept="image/*" class="sr-only">
+                        <input type="file" name="base_image" id="editor-upload-input" accept="image/*" class="sr-only">
                         Upload image
                     </label>
-                    <button type="submit" class="ml-2 rounded bg-slate-800 px-4 py-2 text-white font-medium hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">Upload</button>
                 </div>
             </form>
             <?php if (!empty($canSaveEditorImage)): ?>
@@ -225,6 +224,7 @@ $canRenderComposeForm = $hasWorkspaceEditorState
 </div>
 
 <script src="/js/editor_webcam_preview.js"></script>
+<script src="/js/editor_upload_autosubmit.js"></script>
 <?php if ($isEmptyEditorState && count($stickers) > 0): ?>
     <script src="/js/editor_sticker_pick_no_base.js"></script>
 <?php endif; ?>
