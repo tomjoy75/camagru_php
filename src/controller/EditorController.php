@@ -8,6 +8,8 @@ class EditorController
 
     /** Session key: validated sticker filename chosen before base image exists. */
     private const PENDING_STICKER_SESSION_KEY = 'editor_pending_sticker';
+    /** Session key: a successful compose has been applied to the current workspace image. */
+    private const COMPOSED_READY_SESSION_KEY = 'editor_composed_ready';
 
     public static function show(): void
     {
@@ -37,6 +39,7 @@ class EditorController
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
             self::replaceEditorWorkspaceTemp($newFilename);
+            self::clearComposedReady();
             self::syncPendingStickerFromPost();
             $_SESSION['editor_success'] = 'Image loaded into editor workspace.';
             header('Location: /editor');
@@ -62,6 +65,7 @@ class EditorController
         if (isset($result['filename'])) {
             $newFilename = $result['filename'];
             self::replaceEditorWorkspaceTemp($newFilename);
+            self::clearComposedReady();
             self::syncPendingStickerFromPost();
             $_SESSION['editor_success'] = 'Capture loaded into editor workspace.';
             header('Location: /editor');
@@ -128,6 +132,7 @@ class EditorController
 
         if (isset($result['filename'])) {
             self::replaceEditorWorkspaceTemp($result['filename']);
+            self::markComposedReady();
             header('Location: /editor');
             exit;
         }
@@ -227,6 +232,7 @@ class EditorController
         }
 
         unset($_SESSION['editor_temp_image']);
+        self::clearComposedReady();
 
         header('Location: /editor');
         exit;
@@ -268,6 +274,7 @@ class EditorController
         $raw = (string) ($_SESSION['editor_temp_image'] ?? '');
         unset($_SESSION['editor_temp_image']);
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
+        self::clearComposedReady();
 
         self::unlinkEditorTempFileIfValid($raw);
 
@@ -304,6 +311,7 @@ class EditorController
      *   stickers: list<array<string, mixed>>,
      *   editorTempImage: string|null,
      *   savedImages: list<array<string, mixed>>,
+     *   editorState: 'EMPTY'|'BASE_READY'|'COMPOSED_READY',
      *   editorPreviewSrc: string|null,
      *   canSaveEditorImage: bool,
      *   editorBaseNaturalW: int|null,
@@ -328,16 +336,16 @@ class EditorController
         $savedImages = $repo->findRecentByUserId((int) $_SESSION['user_id'], self::EDITOR_SAVED_LIMIT);
 
         $editorPreviewSrc = null;
-        $canSaveEditorImage = false;
         $editorBaseNaturalW = null;
         $editorBaseNaturalH = null;
+        $hasWorkspaceImage = false;
         if ($editorTempImage !== null && $editorTempImage !== '') {
             $base = basename((string) $editorTempImage);
             if ($base === (string) $editorTempImage && self::isValidEditorTempFilename($base)) {
                 $tmpPath = __DIR__ . '/../../public/tmp/' . $base;
                 if (is_file($tmpPath)) {
+                    $hasWorkspaceImage = true;
                     $editorPreviewSrc = '/tmp/' . $base;
-                    $canSaveEditorImage = true;
                     $info = @getimagesize($tmpPath);
                     if ($info !== false) {
                         $editorBaseNaturalW = (int) $info[0];
@@ -346,6 +354,11 @@ class EditorController
                 }
             }
         }
+        $editorState = 'EMPTY';
+        if ($hasWorkspaceImage) {
+            $editorState = self::isComposedReady() ? 'COMPOSED_READY' : 'BASE_READY';
+        }
+        $canSaveEditorImage = ($editorState === 'COMPOSED_READY');
         $editorError = $_SESSION['editor_error'] ?? null;
         $editorSuccess = $_SESSION['editor_success'] ?? null;
         unset($_SESSION['editor_error']);
@@ -361,6 +374,7 @@ class EditorController
             'stickers' => $stickers,
             'editorTempImage' => $editorTempImage,
             'savedImages' => $savedImages,
+            'editorState' => $editorState,
             'editorPreviewSrc' => $editorPreviewSrc,
             'canSaveEditorImage' => $canSaveEditorImage,
             'editorBaseNaturalW' => $editorBaseNaturalW,
@@ -411,5 +425,20 @@ class EditorController
     private static function isValidEditorTempFilename(string $name): bool
     {
         return (bool) preg_match('/\Aimg_[a-f0-9]{16}\.(png|jpg)\z/', $name);
+    }
+
+    private static function markComposedReady(): void
+    {
+        $_SESSION[self::COMPOSED_READY_SESSION_KEY] = true;
+    }
+
+    private static function clearComposedReady(): void
+    {
+        unset($_SESSION[self::COMPOSED_READY_SESSION_KEY]);
+    }
+
+    private static function isComposedReady(): bool
+    {
+        return !empty($_SESSION[self::COMPOSED_READY_SESSION_KEY]);
     }
 }
