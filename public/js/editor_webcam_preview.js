@@ -47,6 +47,7 @@
     }
 
     document.addEventListener('editor-capture-sticker-changed', syncCaptureEnabled);
+    document.addEventListener('editor-entry-sticker-changed', syncCaptureEnabled);
     syncCaptureEnabled();
 
     if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {

@@ -18,6 +18,7 @@
 
     function notifyStickerChanged() {
         document.dispatchEvent(new CustomEvent('editor-capture-sticker-changed'));
+        document.dispatchEvent(new CustomEvent('editor-entry-sticker-changed'));
     }
 
     function onPickClick(ev) {
