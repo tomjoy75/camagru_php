@@ -4,6 +4,7 @@
     var root = document.getElementById('editor-no-base-sticker-picks');
     var captureHidden = document.getElementById('editor-capture-sticker');
     var uploadHidden = document.getElementById('editor-upload-sticker');
+    var guidance = document.getElementById('editor-guidance-message');
     if (!root || !captureHidden || !uploadHidden) {
         return;
     }
@@ -17,8 +18,25 @@
     }
 
     function notifyStickerChanged() {
+        syncGuidanceMessage();
         document.dispatchEvent(new CustomEvent('editor-capture-sticker-changed'));
         document.dispatchEvent(new CustomEvent('editor-entry-sticker-changed'));
+    }
+
+    function syncGuidanceMessage() {
+        if (!guidance) {
+            return;
+        }
+        var state = (guidance.getAttribute('data-editor-state') || '').trim();
+        if (state !== 'EMPTY') {
+            return;
+        }
+        var hasSticker = (captureHidden.value || '').trim() !== '';
+        var messageAttr = hasSticker ? 'data-empty-with-sticker-message' : 'data-empty-message';
+        var text = guidance.getAttribute(messageAttr) || '';
+        if (text !== '') {
+            guidance.textContent = text;
+        }
     }
 
     function onPickClick(ev) {
