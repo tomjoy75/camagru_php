@@ -6,6 +6,7 @@ if (!in_array($editorState, ['EMPTY', 'BASE_READY', 'COMPOSED_READY'], true)) {
 }
 $isEmptyState = ($editorState === 'EMPTY');
 $isWorkspaceState = ($editorState === 'BASE_READY' || $editorState === 'COMPOSED_READY');
+$isBaseReadyState = ($editorState === 'BASE_READY');
 $isComposedReadyState = ($editorState === 'COMPOSED_READY');
 $canRenderWorkspaceImage = !empty($editorPreviewSrc);
 $canRenderComposeForm = $isWorkspaceState
@@ -15,6 +16,11 @@ $canRenderComposeForm = $isWorkspaceState
 $editorEntryStickerGateActive = $isEmptyState
     && count($stickers) > 0
     && trim((string) ($editorStickerDefault ?? '')) === '';
+$editorSelectedSticker = trim((string) ($editorStickerDefault ?? ''));
+$editorEntryAutoShowEnabled = $isBaseReadyState && $editorSelectedSticker !== '';
+$editorEntryAutoShowStickerUrl = $editorSelectedSticker !== ''
+    ? '/stickers/' . rawurlencode($editorSelectedSticker)
+    : '';
 ?>
 <div class="w-full grid grid-cols-1 lg:grid-cols-5 gap-6">
     <section class="lg:col-span-4 space-y-4">
@@ -49,6 +55,9 @@ $editorEntryStickerGateActive = $isEmptyState
                             id="editor-sticker-stage"
                             class="absolute top-0 left-0 z-10 hidden cursor-move pointer-events-auto"
                             aria-hidden="true"
+                            data-entry-autoshow="<?php echo $editorEntryAutoShowEnabled ? '1' : '0'; ?>"
+                            data-entry-sticker="<?php echo htmlspecialchars($editorSelectedSticker, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-entry-sticker-url="<?php echo htmlspecialchars($editorEntryAutoShowStickerUrl, ENT_QUOTES, 'UTF-8'); ?>"
                         >
                             <img
                                 id="editor-sticker-overlay"

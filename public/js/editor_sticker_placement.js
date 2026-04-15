@@ -175,6 +175,25 @@
         hiddenY.value = String(p.y);
     }
 
+    function findPickByName(name) {
+        var normalized = (name || '').trim();
+        if (!normalized) {
+            return null;
+        }
+        for (var i = 0; i < picks.length; i++) {
+            if ((picks[i].getAttribute('data-sticker') || '') === normalized) {
+                return picks[i];
+            }
+        }
+        return null;
+    }
+
+    function syncPressedState(activeBtn) {
+        for (var i = 0; i < picks.length; i++) {
+            picks[i].setAttribute('aria-pressed', picks[i] === activeBtn ? 'true' : 'false');
+        }
+    }
+
     function selectSticker(btn) {
         var url = btn.getAttribute('data-sticker-url');
         var name = btn.getAttribute('data-sticker');
@@ -182,10 +201,7 @@
             return;
         }
         hiddenSticker.value = name;
-        var picks = document.querySelectorAll('.editor-sticker-pick');
-        for (var i = 0; i < picks.length; i++) {
-            picks[i].setAttribute('aria-pressed', picks[i] === btn ? 'true' : 'false');
-        }
+        syncPressedState(btn);
         syncApplyDisabled();
         overlay.onload = function () {
             overlay.onload = null;
@@ -208,13 +224,37 @@
         picks[j].addEventListener('click', onPickClick);
     }
 
+    var entryAutoShowEnabled = stage.getAttribute('data-entry-autoshow') === '1';
+    var entryStickerName = (stage.getAttribute('data-entry-sticker') || '').trim();
+    var entryStickerUrl = (stage.getAttribute('data-entry-sticker-url') || '').trim();
+    var didRunEntryAutoShow = false;
+    if (entryAutoShowEnabled && entryStickerName && entryStickerUrl) {
+        var entryPick = findPickByName(entryStickerName);
+        if (entryPick) {
+            selectSticker(entryPick);
+            didRunEntryAutoShow = true;
+        } else {
+            hiddenSticker.value = entryStickerName;
+            syncApplyDisabled();
+            overlay.onload = function () {
+                overlay.onload = null;
+                stickerNw = overlay.naturalWidth;
+                stickerNh = overlay.naturalHeight;
+                centerSticker();
+                syncHiddens();
+                syncOverlayVisual();
+            };
+            overlay.src = entryStickerUrl;
+            didRunEntryAutoShow = true;
+        }
+        stage.setAttribute('data-entry-autoshow', '0');
+    }
+
     var pre = (hiddenSticker && hiddenSticker.value) ? hiddenSticker.value.trim() : '';
-    if (pre) {
-        for (var k = 0; k < picks.length; k++) {
-            if ((picks[k].getAttribute('data-sticker') || '') === pre) {
-                selectSticker(picks[k]);
-                break;
-            }
+    if (!didRunEntryAutoShow && pre) {
+        var prePick = findPickByName(pre);
+        if (prePick) {
+            selectSticker(prePick);
         }
     }
     syncApplyDisabled();
