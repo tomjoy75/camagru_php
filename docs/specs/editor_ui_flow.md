@@ -76,9 +76,9 @@ Enabled / disabled:
 A workspace image exists and at least one valid server-side compose has been applied since the last base creation or replacement.
 
 User sees:
-- workspace image
+- workspace image (pixels already include the last successful compose)
 - sticker placement UI
-- ability to keep composing or save
+- no placement overlay until the user explicitly selects a sticker for the **next** compose (the pending sticker draft is cleared server-side after each successful apply)
 
 Visible actions:
 - `Capture`
@@ -115,6 +115,7 @@ Enabled / disabled:
 - `Save image` is valid only in `COMPOSED_READY`.
 - Sticker selection before compose is preview only; it does not modify the server image by itself.
 - `Apply sticker` is the user action that requests server-side compose.
+- After a **successful** compose, the session’s **pending sticker draft** (`editor_pending_sticker`) must be cleared so the next `GET /editor` in `COMPOSED_READY` does not auto-restore a preview overlay on top of the already composed image; the user starts a new placement only by picking a sticker again.
 - Upload creates or replaces the current base image and returns the flow to `BASE_READY`.
 - Capture and upload are entry / base-replacement actions, not save-enabling actions by themselves.
 - `editorState` is the workflow source of truth; image URLs are display data only.

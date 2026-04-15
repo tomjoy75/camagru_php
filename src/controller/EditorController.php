@@ -155,6 +155,7 @@ class EditorController
             if ($composedBase === (string) $result['filename'] && self::isValidEditorTempFilename($composedBase)) {
                 $_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY] = $composedBase;
             }
+            unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
             self::setEditorWorkspaceState(self::EDITOR_STATE_COMPOSED_READY);
             header('Location: /editor');
             exit;
