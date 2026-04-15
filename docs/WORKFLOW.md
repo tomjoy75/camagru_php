@@ -648,7 +648,9 @@ Rules:
 - Do **not** change application code unless the user explicitly asks to fix a failing test.
 - If tests fail, state facts and suspected area; do not silently widen scope.
 ```
-
+```
+MaJ Issue checkboxes with those results
+```
 ---
 
 # 12. Complete the feature
