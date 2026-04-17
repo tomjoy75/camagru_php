@@ -5,6 +5,7 @@
 class EditorController
 {
     private const EDITOR_SAVED_LIMIT = 12;
+    /** Session key: current editor workspace state. */
     private const EDITOR_STATE_SESSION_KEY = 'editor_workspace_state';
     private const EDITOR_STATE_EMPTY = 'EMPTY';
     private const EDITOR_STATE_BASE_READY = 'BASE_READY';

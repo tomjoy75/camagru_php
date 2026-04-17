@@ -32,3 +32,7 @@ When a **valid comment** is saved on **another user’s** image and the image ow
 5. **If a local MTA** (e.g. Postfix/sendmail) **is** installed, you may inspect the queue or logs, e.g. `postqueue -p` and `sudo tail -n 50 /var/log/mail.log` (paths may differ by distro).
 
 **Honest split:** Log lines (**especially when `mail()` runs but transport is missing**, e.g. `/usr/sbin/sendmail: not found`) are enough to **validate the application path** and failure isolation. **Inbox delivery** is only confirmed when your environment has a working **sendmail-compatible** path or you use a proper test relay. Details and test ideas: `docs/specs/notifications_email_sending.md`.
+
+## Resources
+
+- Sticker assets source: [purepng.com](https://purepng.com/)
