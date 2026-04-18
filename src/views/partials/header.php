@@ -1,6 +1,6 @@
-<header class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+<header class="max-w-2xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <p class="font-semibold text-lg text-slate-800">Camagru</p>
-    <nav class="flex items-center gap-4">
+    <nav class="flex flex-wrap items-center gap-3">
         <a href="/gallery" class="text-slate-600 hover:text-slate-900 underline">Gallery</a>
         <a href="/editor" class="text-slate-600 hover:text-slate-900 underline">Editor</a>
         <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] !== ''): ?>
