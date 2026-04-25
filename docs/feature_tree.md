@@ -152,3 +152,18 @@
 
 - **Subfeature: In-app notifications**  
   Show unread notification count; list of recent notifications (likes, comments, etc.).
+
+---
+
+## Module: Delivery
+
+### Feature: Containerized deploy
+
+- **Subfeature: Dockerfile runtime baseline** *(done: issue #59)*  
+  Build a runnable PHP image with required extensions (`pdo_sqlite`, `gd`) and serve the app from `public/index.php`.
+- **Subfeature: Compose MVP boot to login page** *(issue #71)*  
+  Add minimal `docker-compose.yml` so `docker compose up` brings the app up and the login page is reachable.
+- **Subfeature: Compose persistence and DB bootstrap hardening** *(issue #70)*  
+  Add runtime volumes and first-run DB bootstrap behavior; ensure repeated runs keep persisted data.
+- **Subfeature: Docker workflow documentation** *(issue #61)*  
+  Document build/run/compose usage and expected local workflow in `README.md`.
