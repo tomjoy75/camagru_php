@@ -39,6 +39,25 @@ Expected result: `HTTP 200`.
 docker compose down --remove-orphans
 ```
 
+### Optional: local email with Mailpit (Docker Hub)
+
+Use this when you want to **see** outbound mail (comment notifications, registration, password reset) in a **web inbox** during local Docker runs. The application still uses PHP `mail()`; the image can relay through [Mailpit](https://github.com/axllent/mailpit) via `msmtp` when you opt in.
+
+1. Start the stack with the **`mail`** Compose profile and point the app at the Mailpit service:
+
+   ```bash
+   export MAILPIT_HOST=mailpit
+   docker compose --profile mail up -d --build
+   ```
+
+   Or add `MAILPIT_HOST=mailpit` to your `.env` **only** while you use this workflow (leave it unset for the default app-only compose so `mail()` is not sent to a missing host).
+
+2. Open the Mailpit UI: **http://localhost:8025** (override with `MAILPIT_UI_PORT` in `.env` if 8025 is taken).
+
+3. Trigger any flow that sends mail (e.g. post a comment on another user’s image with notifications on). Messages should appear in Mailpit. SMTP in the container listens on service port **1025**; the app container connects to `mailpit:1025` when `MAILPIT_HOST=mailpit` is set.
+
+`docker compose up` (without `--profile mail`) is unchanged: only the `app` service runs, and in-container `mail()` behavior matches a typical dev image without a local MTA.
+
 ### Persistence notes (current behavior)
 
 - Current compose mounts persist data from:
