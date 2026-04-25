@@ -1,3 +1,53 @@
+## Docker workflow (local)
+
+### Prerequisites
+
+- Docker with Compose plugin (`docker compose` command available)
+- Run commands from repository root
+
+### Environment variables and secrets
+
+Create a local `.env` file (do not commit secrets):
+
+```bash
+cat > .env <<'EOF'
+APP_PORT=8080
+APP_BASE_URL=http://localhost:8080
+APP_MAIL_FROM=camagru@example.com
+# optional
+# APP_MAIL_REPLY_TO=support@example.com
+EOF
+```
+
+### Build and start
+
+```bash
+docker compose up -d --build
+```
+
+### Verify app reachability
+
+```bash
+curl -fsS -o /tmp/camagru_login.html -w "HTTP %{http_code}\n" http://localhost:8080/login
+```
+
+Expected result: `HTTP 200`.
+
+### Stop and cleanup
+
+```bash
+docker compose down --remove-orphans
+```
+
+### Persistence notes (current behavior)
+
+- Current compose mounts persist data from:
+  - `./database` -> `/app/database`
+  - `./public/uploads` -> `/app/public/uploads`
+  - `./public/tmp` -> `/app/public/tmp`
+- This README documents current implemented behavior only.
+- First-run DB initialization guarantees are not specified here beyond what is currently implemented.
+
 ## Comment notification email (dev / verification)
 
 ### Why this design
