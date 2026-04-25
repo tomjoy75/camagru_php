@@ -1,0 +1,12 @@
+.git
+.github
+.cursor
+.vscode
+docs
+tools
+*.md
+*.pdf
+*.txt
+cookies*.txt
+database/camagru.db
+tmp
