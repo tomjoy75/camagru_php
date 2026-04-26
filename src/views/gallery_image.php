@@ -32,14 +32,16 @@
             <div><dt class="inline font-medium text-slate-800">Published:</dt>
                 <dd class="inline ml-1"><?php echo htmlspecialchars($createdLabel, ENT_QUOTES, 'UTF-8'); ?></dd></div>
             <div><dt class="inline font-medium text-slate-800">Likes:</dt>
-                <dd class="inline ml-1"><?php echo (int) ($likeCount ?? 0); ?></dd></div>
+                <dd id="gallery-like-count" class="inline ml-1" aria-live="polite" aria-atomic="true"><?php echo (int) ($likeCount ?? 0); ?></dd></div>
             <?php if ($canInteract && $imgId >= 1): ?>
                 <div class="pt-2">
-                    <form method="post" action="<?php echo htmlspecialchars('/gallery/like', ENT_QUOTES, 'UTF-8'); ?>" class="inline">
+                    <form id="gallery-like-form" method="post" action="<?php echo htmlspecialchars('/gallery/like', ENT_QUOTES, 'UTF-8'); ?>" class="inline">
                         <input type="hidden" name="image_id" value="<?php echo $imgId; ?>">
                         <button
                             type="submit"
+                            id="gallery-like-submit"
                             class="text-sm px-3 py-1.5 rounded border border-slate-300 bg-white text-slate-800 hover:bg-slate-50"
+                            aria-pressed="<?php echo !empty($hasLiked) ? 'true' : 'false'; ?>"
                         ><?php echo !empty($hasLiked) ? 'Unlike' : 'Like'; ?></button>
                     </form>
                 </div>
@@ -108,5 +110,8 @@
                 </ul>
             <?php endif; ?>
         </section>
+        <?php if ($canInteract && $imgId >= 1): ?>
+            <script src="/js/gallery_image_like.js" defer></script>
+        <?php endif; ?>
     <?php endif; ?>
 </div>

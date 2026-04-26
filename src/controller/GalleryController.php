@@ -209,8 +209,26 @@ class GalleryController
             exit;
         }
 
+        if (self::wantsGalleryLikeJsonResponse()) {
+            $detailRow = $imageRepo->findPublicDetailById($imageId);
+            $likeCountOut = (int) ($detailRow['like_count'] ?? 0);
+            $likedOut = $likeRepo->hasLiked($userId, $imageId);
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(200);
+            echo json_encode(['liked' => $likedOut, 'like_count' => $likeCountOut]);
+            exit;
+        }
+
         header('Location: /gallery/image?id=' . $imageId);
         exit;
+    }
+
+    /** True when client asked for a JSON body on POST /gallery/like (see docs/specs/likes_live_like_state.md). */
+    private static function wantsGalleryLikeJsonResponse(): bool
+    {
+        $accept = isset($_SERVER['HTTP_ACCEPT']) ? (string) $_SERVER['HTTP_ACCEPT'] : '';
+
+        return stripos($accept, 'application/json') !== false;
     }
 
     public static function addComment(): void
