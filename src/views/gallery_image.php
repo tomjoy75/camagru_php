@@ -17,6 +17,7 @@
         $sessionUserId = $_SESSION['user_id'] ?? null;
         $canInteract = $sessionUserId !== null && $sessionUserId !== '';
         $imgId = (int) ($detailImageId ?? 0);
+        $shareUrl = (string) ($shareTargetUrl ?? '');
         ?>
         <h1 class="text-xl font-semibold text-slate-800">Image</h1>
         <div class="rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
@@ -54,6 +55,42 @@
                     ?>
                 </dd></div>
         </dl>
+        <section class="mt-3" aria-label="Share this image">
+            <h2 class="text-sm font-medium text-slate-800">Share</h2>
+            <div class="mt-1 flex flex-wrap items-center gap-3 text-sm">
+                <a
+                    href="<?php echo htmlspecialchars((string) ($twitterShareHref ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-slate-700 underline hover:text-slate-900"
+                >Twitter/X</a>
+                <a
+                    href="<?php echo htmlspecialchars((string) ($facebookShareHref ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-slate-700 underline hover:text-slate-900"
+                >Facebook</a>
+                <a
+                    href="<?php echo htmlspecialchars((string) ($linkedinShareHref ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-slate-700 underline hover:text-slate-900"
+                >LinkedIn</a>
+                <button
+                    type="button"
+                    id="discord-share-button"
+                    data-share-url="<?php echo htmlspecialchars($shareUrl, ENT_QUOTES, 'UTF-8'); ?>"
+                    class="text-slate-700 underline hover:text-slate-900"
+                    title="Copy the image link and open Discord"
+                >Discord</button>
+            </div>
+            <?php if (!empty($shareLocalOnlyWarning)): ?>
+                <p class="mt-2 text-xs text-amber-700">
+                    <?php echo htmlspecialchars((string) $shareLocalOnlyWarning, ENT_QUOTES, 'UTF-8'); ?>
+                </p>
+            <?php endif; ?>
+            <p id="discord-share-status" class="mt-1 text-xs text-slate-500" aria-live="polite"></p>
+        </section>
         <?php if (!empty($galleryCommentError)): ?>
             <p class="text-sm text-red-600 mt-2" role="alert"><?php echo htmlspecialchars((string) $galleryCommentError, ENT_QUOTES, 'UTF-8'); ?></p>
         <?php endif; ?>
@@ -113,5 +150,31 @@
         <?php if ($canInteract && $imgId >= 1): ?>
             <script src="/js/gallery_image_like.js" defer></script>
         <?php endif; ?>
+        <script>
+            (function () {
+                const button = document.getElementById('discord-share-button');
+                const status = document.getElementById('discord-share-status');
+                if (!button) {
+                    return;
+                }
+
+                button.addEventListener('click', async function () {
+                    const url = button.getAttribute('data-share-url') || '';
+                    if (!url) {
+                        if (status) status.textContent = 'Share link unavailable.';
+                        return;
+                    }
+
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        if (status) status.textContent = 'Link copied. Paste it in Discord.';
+                    } catch (e) {
+                        if (status) status.textContent = 'Could not copy link automatically.';
+                    }
+
+                    window.open('https://discord.com/app', '_blank', 'noopener,noreferrer');
+                });
+            }());
+        </script>
     <?php endif; ?>
 </div>

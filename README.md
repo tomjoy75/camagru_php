@@ -19,6 +19,8 @@ APP_MAIL_FROM=camagru@example.com
 EOF
 ```
 
+`APP_BASE_URL` is also used to build gallery social-sharing links. With local values such as `http://localhost:8080`, the share URLs are valid for your browser but not reachable by external social networks. Use a public URL when you want to test real sharing behavior.
+
 ### Build and start
 
 ```bash

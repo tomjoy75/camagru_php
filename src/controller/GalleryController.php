@@ -98,6 +98,11 @@ class GalleryController
         $comments = [];
         $hasLiked = false;
         $detailImageId = $imageId;
+        $shareTargetUrl = '';
+        $shareLocalOnlyWarning = null;
+        $twitterShareHref = '';
+        $facebookShareHref = '';
+        $linkedinShareHref = '';
 
         try {
             require_once __DIR__ . '/../repository/ImageRepository.php';
@@ -114,6 +119,16 @@ class GalleryController
                 NotFoundController::handle();
                 return;
             }
+            $shareTargetUrl = self::buildGalleryImagePublicUrl($imageId);
+            $shareHost = parse_url($shareTargetUrl, PHP_URL_HOST);
+            if (is_string($shareHost) && self::isLocalOnlyShareHost($shareHost)) {
+                $shareLocalOnlyWarning = 'Sharing links use your current APP_BASE_URL. Localhost links cannot be accessed by external social networks. Set APP_BASE_URL to a public URL to test real sharing.';
+            }
+            $encodedShareTargetUrl = rawurlencode($shareTargetUrl);
+            $encodedShareText = rawurlencode('Check out this Camagru image');
+            $twitterShareHref = 'https://twitter.com/intent/tweet?url=' . $encodedShareTargetUrl . '&text=' . $encodedShareText;
+            $facebookShareHref = 'https://www.facebook.com/sharer/sharer.php?u=' . $encodedShareTargetUrl;
+            $linkedinShareHref = 'https://www.linkedin.com/sharing/share-offsite/?url=' . $encodedShareTargetUrl;
             $username = (string) ($row['username'] ?? '');
             $createdAt = (string) ($row['created_at'] ?? '');
             $likeCount = (int) ($row['like_count'] ?? 0);
@@ -153,6 +168,11 @@ class GalleryController
                 'comments',
                 'hasLiked',
                 'detailImageId',
+                'shareTargetUrl',
+                'shareLocalOnlyWarning',
+                'twitterShareHref',
+                'facebookShareHref',
+                'linkedinShareHref',
                 'galleryCommentError',
                 'galleryCommentSuccess'
             ),
@@ -296,7 +316,7 @@ class GalleryController
         }
 
         require_once __DIR__ . '/../service/CommentNotificationService.php';
-        CommentNotificationService::tryNotifyOnNewComment($ownerUserId, $userId, $imageId, $newId);
+        CommentNotificationService::tryNotifyOnNewComment($ownerUserId, $userId, $imageId, (int) $newId);
 
         $_SESSION['gallery_comment_success'] = 'Comment posted.';
         header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
@@ -344,6 +364,40 @@ class GalleryController
         }
 
         return '/' . $rel;
+    }
+
+    private static function buildGalleryImagePublicUrl(int $imageId): string
+    {
+        $baseUrl = self::resolvePublicBaseUrl();
+
+        return $baseUrl . '/gallery/image?id=' . $imageId;
+    }
+
+    private static function resolvePublicBaseUrl(): string
+    {
+        require_once __DIR__ . '/../service/MailEnv.php';
+        $configured = MailEnv::validatedAppBaseUrl();
+        if ($configured !== null) {
+            return $configured;
+        }
+
+        $https = isset($_SERVER['HTTPS']) ? strtolower((string) $_SERVER['HTTPS']) : '';
+        $scheme = ($https !== '' && $https !== 'off') ? 'https' : 'http';
+        $host = isset($_SERVER['HTTP_HOST']) ? trim((string) $_SERVER['HTTP_HOST']) : '';
+        if ($host !== '') {
+            return $scheme . '://' . $host;
+        }
+
+        return 'http://localhost:8080';
+    }
+
+    private static function isLocalOnlyShareHost(string $host): bool
+    {
+        $normalized = strtolower(trim($host, '[]'));
+
+        return $normalized === 'localhost'
+            || $normalized === '127.0.0.1'
+            || $normalized === '::1';
     }
 
     /**
