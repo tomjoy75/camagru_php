@@ -5,6 +5,7 @@
 class AuthService
 {
     private const MIN_PASSWORD_LENGTH = 8;
+    private const PASSWORD_SPECIAL_ALLOWED = "!@#$%^&*()_+-=[]{}|;:,.<>?";
     private const USERNAME_MIN_LENGTH = 3;
     private const USERNAME_MAX_LENGTH = 50;
 
@@ -297,6 +298,18 @@ class AuthService
     {
         if (strlen($password) < self::MIN_PASSWORD_LENGTH) {
             return 'Password must be at least ' . self::MIN_PASSWORD_LENGTH . ' characters.';
+        }
+        if (!preg_match('/[a-z]/', $password)) {
+            return 'Password must include at least one lowercase letter, one uppercase letter, one number, and one special character.';
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            return 'Password must include at least one lowercase letter, one uppercase letter, one number, and one special character.';
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            return 'Password must include at least one lowercase letter, one uppercase letter, one number, and one special character.';
+        }
+        if (!preg_match('/[' . preg_quote(self::PASSWORD_SPECIAL_ALLOWED, '/') . ']/', $password)) {
+            return 'Password must include at least one lowercase letter, one uppercase letter, one number, and one special character.';
         }
 
         return null;
