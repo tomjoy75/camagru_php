@@ -6,14 +6,14 @@
     <title>Camagru</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800">
-    <div class="border-b border-slate-200 bg-white shadow-sm">
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-50">
+    <div class="border-b border-slate-800/80 bg-slate-900/90 shadow-lg shadow-black/30">
         <?php require __DIR__ . '/partials/header.php'; ?>
     </div>
     <main class="max-w-2xl mx-auto px-4 py-8">
         <?php require __DIR__ . '/' . $view; ?>
     </main>
-    <div class="border-t border-slate-200 bg-white mt-auto">
+    <div class="border-t border-slate-800/80 bg-slate-900/90 mt-auto">
         <?php require __DIR__ . '/partials/footer.php'; ?>
     </div>
 </body>

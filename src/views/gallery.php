@@ -1,5 +1,5 @@
 <div class="space-y-4">
-    <h1 class="text-xl font-semibold text-slate-800">Gallery</h1>
+    <h1 class="text-xl font-semibold text-slate-100">Gallery</h1>
 
     <?php
     $galleryFilterActive = !empty($galleryFilterActive);
@@ -42,12 +42,12 @@
 
     <?php if ($galleryFilterActive && $galleryFilterUserId > 0): ?>
         <p class="text-sm">
-            <a href="<?php echo htmlspecialchars($galleryClearUserHref, ENT_QUOTES, 'UTF-8'); ?>" class="text-slate-700 underline hover:text-slate-900">All users</a>
+            <a href="<?php echo htmlspecialchars($galleryClearUserHref, ENT_QUOTES, 'UTF-8'); ?>" class="text-cyan-400 underline hover:text-cyan-300">All users</a>
         </p>
     <?php endif; ?>
 
     <?php if (empty($galleryLoadError)): ?>
-        <nav class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-700" aria-label="Gallery sort">
+        <nav class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-300" aria-label="Gallery sort">
             <?php
             $sortModes = [
                 'newest' => 'Newest',
@@ -58,12 +58,12 @@
             $sep = '';
             foreach ($sortModes as $mode => $label) {
                 echo $sep;
-                $sep = ' <span class="text-slate-400" aria-hidden="true">·</span> ';
+                $sep = ' <span class="text-slate-600" aria-hidden="true">·</span> ';
                 if ($gallerySort === $mode) {
-                    echo '<span class="font-semibold text-slate-900">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span>';
+                    echo '<span class="font-semibold text-slate-100">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span>';
                 } else {
                     $h = $galleryHrefForSort($mode);
-                    echo '<a href="' . htmlspecialchars($h, ENT_QUOTES, 'UTF-8') . '" class="underline hover:text-slate-900">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a>';
+                    echo '<a href="' . htmlspecialchars($h, ENT_QUOTES, 'UTF-8') . '" class="underline text-cyan-400/90 hover:text-cyan-300">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</a>';
                 }
             }
             ?>
@@ -71,14 +71,14 @@
     <?php endif; ?>
 
     <?php if (!empty($galleryLoadError)): ?>
-        <p class="text-slate-600">The gallery could not be loaded. Please try again later.</p>
+        <p class="text-slate-400">The gallery could not be loaded. Please try again later.</p>
     <?php else: ?>
         <?php $images = $images ?? []; ?>
         <?php if (count($images) === 0): ?>
             <?php if ($galleryFilterActive && $galleryHasAnyImages): ?>
-                <p class="text-slate-600">No published images for this user.</p>
+                <p class="text-slate-400">No published images for this user.</p>
             <?php else: ?>
-                <p class="text-slate-600">No images published yet.</p>
+                <p class="text-slate-400">No images published yet.</p>
             <?php endif; ?>
         <?php else: ?>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -100,26 +100,26 @@
                     }
                     $authorFilterHref = '/gallery?' . http_build_query($authorQuery);
                     ?>
-                    <div class="flex flex-col rounded overflow-hidden border border-slate-200 bg-slate-200">
+                    <div class="flex flex-col rounded overflow-hidden border border-slate-700 bg-slate-900 shadow-md shadow-black/20">
                         <a
                             href="<?php echo htmlspecialchars($detailHref, ENT_QUOTES, 'UTF-8'); ?>"
-                            class="flex flex-col block hover:ring-2 hover:ring-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                            class="flex flex-col block hover:ring-2 hover:ring-cyan-500/60 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                             data-image-id="<?php echo $imageId; ?>"
                             data-like-count="<?php echo $likeCount; ?>"
                         >
-                            <div class="aspect-square w-full min-h-0 shrink-0 overflow-hidden">
+                            <div class="aspect-square w-full min-h-0 shrink-0 overflow-hidden bg-slate-800">
                                 <img
                                     src="<?php echo htmlspecialchars($src, ENT_QUOTES, 'UTF-8'); ?>"
                                     alt="Published image"
                                     class="w-full h-full object-cover"
                                 >
                             </div>
-                            <span class="text-xs text-slate-700 px-2 py-1 bg-slate-100 border-t border-slate-200">Likes: <?php echo $likeCount; ?></span>
+                            <span class="text-xs text-slate-300 px-2 py-1 bg-slate-950/80 border-t border-slate-700">Likes: <?php echo $likeCount; ?></span>
                         </a>
                         <?php if ($authorId > 0): ?>
                             <a
                                 href="<?php echo htmlspecialchars($authorFilterHref, ENT_QUOTES, 'UTF-8'); ?>"
-                                class="text-xs text-slate-700 px-2 py-1 bg-slate-100 border-t border-slate-200 underline hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                                class="text-xs text-cyan-400/90 px-2 py-1 bg-slate-950/80 border-t border-slate-700 underline hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500"
                             ><?php echo htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8'); ?></a>
                         <?php endif; ?>
                     </div>
@@ -135,21 +135,21 @@
                     <?php if ($currentPage > 1): ?>
                         <a
                             href="<?php echo htmlspecialchars('/gallery?' . $galleryPageQuery . 'page=' . ($currentPage - 1), ENT_QUOTES, 'UTF-8'); ?>"
-                            class="text-slate-700 underline hover:text-slate-900"
+                            class="text-cyan-400 underline hover:text-cyan-300"
                         >Previous</a>
                     <?php else: ?>
-                        <span class="text-slate-400">Previous</span>
+                        <span class="text-slate-600">Previous</span>
                     <?php endif; ?>
 
-                    <span class="text-slate-600">Page <?php echo $currentPage; ?> of <?php echo $totalPages; ?></span>
+                    <span class="text-slate-400">Page <?php echo $currentPage; ?> of <?php echo $totalPages; ?></span>
 
                     <?php if ($currentPage < $totalPages): ?>
                         <a
                             href="<?php echo htmlspecialchars('/gallery?' . $galleryPageQuery . 'page=' . ($currentPage + 1), ENT_QUOTES, 'UTF-8'); ?>"
-                            class="text-slate-700 underline hover:text-slate-900"
+                            class="text-cyan-400 underline hover:text-cyan-300"
                         >Next</a>
                     <?php else: ?>
-                        <span class="text-slate-400">Next</span>
+                        <span class="text-slate-600">Next</span>
                     <?php endif; ?>
                 </nav>
             <?php endif; ?>
