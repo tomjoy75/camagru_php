@@ -117,10 +117,17 @@ class ImageComposeService
             return ['errors' => ['Invalid sticker dimensions after transform.']];
         }
 
-        $maxX = max(0, $baseWidth - $rotW);
-        $maxY = max(0, $baseHeight - $rotH);
-        $x = max(0, min($x, $maxX));
-        $y = max(0, min($y, $maxY));
+        $visibleBounds = self::findVisibleBoundingBox($stickerImage);
+        if ($visibleBounds === null) {
+            $visibleBounds = ['minX' => 0, 'minY' => 0, 'maxX' => $rotW - 1, 'maxY' => $rotH - 1];
+        }
+
+        $minX = -$visibleBounds['minX'];
+        $maxX = $baseWidth - 1 - $visibleBounds['maxX'];
+        $minY = -$visibleBounds['minY'];
+        $maxY = $baseHeight - 1 - $visibleBounds['maxY'];
+        $x = max($minX, min($x, $maxX));
+        $y = max($minY, min($y, $maxY));
 
         imagealphablending($baseImage, true);
         imagesavealpha($baseImage, true);
@@ -306,5 +313,47 @@ class ImageComposeService
     private static function savePng(GdImage $img, string $path): bool
     {
         return imagepng($img, $path);
+    }
+
+    /**
+     * Find the smallest axis-aligned box containing non-fully-transparent pixels.
+     *
+     * @return array{minX: int, minY: int, maxX: int, maxY: int}|null
+     */
+    private static function findVisibleBoundingBox(GdImage $image): ?array
+    {
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $minX = $width;
+        $minY = $height;
+        $maxX = -1;
+        $maxY = -1;
+
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $color = imagecolorat($image, $x, $y);
+                $alpha = ($color >> 24) & 0x7F;
+                if ($alpha < 127) {
+                    if ($x < $minX) {
+                        $minX = $x;
+                    }
+                    if ($y < $minY) {
+                        $minY = $y;
+                    }
+                    if ($x > $maxX) {
+                        $maxX = $x;
+                    }
+                    if ($y > $maxY) {
+                        $maxY = $y;
+                    }
+                }
+            }
+        }
+
+        if ($maxX < 0 || $maxY < 0) {
+            return null;
+        }
+
+        return ['minX' => $minX, 'minY' => $minY, 'maxX' => $maxX, 'maxY' => $maxY];
     }
 }

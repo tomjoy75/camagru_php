@@ -26,6 +26,8 @@
 
     var stickerNw = 0;
     var stickerNh = 0;
+    /** Cache alpha bbox in rotated-AABB space (same uw, uh, rotW, rotH, angle as placementDimensions). */
+    var visibleBoundsCache = { key: '', bounds: null };
     var dragging = false;
     var dragStartClientX = 0;
     var dragStartClientY = 0;
@@ -107,13 +109,134 @@
         return Math.max(-180, Math.min(180, v));
     }
 
+    function invalidateVisibleBoundsCache() {
+        visibleBoundsCache.key = '';
+        visibleBoundsCache.bounds = null;
+    }
+
+    /**
+     * Rasterize the sticker like the on-screen preview: uw×uh bitmap centered in a rotW×rotH box, then rotate
+     * around the box center (same layout as syncOverlayVisual + CSS rotate). Scan alpha to get the tight bbox
+     * of non-transparent pixels in that box's coordinate system (0..rotW-1, 0..rotH-1).
+     *
+     * Rotation note: we use the same signed degrees as the UI (CSS transform). PHP uses imagerotate(..., -angle);
+     * both aim for the same clockwise user angle; anti-aliasing and ±1 canvas size vs GD can still cause tiny
+     * differences at Apply time compared to this scan.
+     */
+    function computeVisibleBoundsInRotCanvas(overlayImg, uw, uh, rotW, rotH, angleDeg) {
+        if (!overlayImg || !overlayImg.complete || overlayImg.naturalWidth <= 0 || overlayImg.naturalHeight <= 0) {
+            return null;
+        }
+        if (uw <= 0 || uh <= 0 || rotW <= 0 || rotH <= 0) {
+            return null;
+        }
+        try {
+            var canvas = document.createElement('canvas');
+            canvas.width = rotW;
+            canvas.height = rotH;
+            var ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) {
+                return null;
+            }
+            ctx.clearRect(0, 0, rotW, rotH);
+            ctx.save();
+            ctx.translate(rotW / 2, rotH / 2);
+            ctx.rotate((angleDeg * Math.PI) / 180);
+            ctx.drawImage(
+                overlayImg,
+                0,
+                0,
+                overlayImg.naturalWidth,
+                overlayImg.naturalHeight,
+                -uw / 2,
+                -uh / 2,
+                uw,
+                uh
+            );
+            ctx.restore();
+
+            var data = ctx.getImageData(0, 0, rotW, rotH).data;
+            var minX = rotW;
+            var minY = rotH;
+            var maxX = -1;
+            var maxY = -1;
+            var i = 0;
+            for (var y = 0; y < rotH; y++) {
+                for (var x = 0; x < rotW; x++) {
+                    if (data[i + 3] > 0) {
+                        if (x < minX) {
+                            minX = x;
+                        }
+                        if (y < minY) {
+                            minY = y;
+                        }
+                        if (x > maxX) {
+                            maxX = x;
+                        }
+                        if (y > maxY) {
+                            maxY = y;
+                        }
+                    }
+                    i += 4;
+                }
+            }
+            if (maxX < 0 || maxY < 0) {
+                return null;
+            }
+            return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function getVisibleBoundsForPlacement(overlayImg, pl, angleDeg) {
+        var key = [pl.uw, pl.uh, pl.rotW, pl.rotH, angleDeg, overlayImg.src || ''].join('|');
+        if (visibleBoundsCache.key === key) {
+            return visibleBoundsCache.bounds;
+        }
+        var b = computeVisibleBoundsInRotCanvas(overlayImg, pl.uw, pl.uh, pl.rotW, pl.rotH, angleDeg);
+        visibleBoundsCache.key = key;
+        visibleBoundsCache.bounds = b;
+        return b;
+    }
+
+    /**
+     * (x, y) is the top-left of the full transformed sticker bitmap (rotW×rotH) on the base image, same as server imagecopy.
+     * Allowed range uses visible pixel extents: opaque bbox [minX,maxX]×[minY,maxY] in rot space →
+     * minXPlace = -minX so transparent margin can leave the base upward/left; maxXPlace = baseW - 1 - maxX (inclusive), matching ImageComposeService.
+     */
     function clampPosition(x, y) {
         var pl = placementDimensions();
-        var maxX = Math.max(0, baseW - pl.rotW);
-        var maxY = Math.max(0, baseH - pl.rotH);
+        var angleDeg = readAngle();
+        var vb = getVisibleBoundsForPlacement(overlay, pl, angleDeg);
+        var rx = Math.round(x);
+        var ry = Math.round(y);
+
+        if (!vb) {
+            var maxXF = Math.max(0, baseW - pl.rotW);
+            var maxYF = Math.max(0, baseH - pl.rotH);
+            return {
+                x: Math.max(0, Math.min(rx, maxXF)),
+                y: Math.max(0, Math.min(ry, maxYF)),
+            };
+        }
+
+        var minX = -vb.minX;
+        var maxX = baseW - 1 - vb.maxX;
+        var minY = -vb.minY;
+        var maxY = baseH - 1 - vb.maxY;
+        if (minX > maxX || minY > maxY) {
+            var maxXD = Math.max(0, baseW - pl.rotW);
+            var maxYD = Math.max(0, baseH - pl.rotH);
+            return {
+                x: Math.max(0, Math.min(rx, maxXD)),
+                y: Math.max(0, Math.min(ry, maxYD)),
+            };
+        }
+
         return {
-            x: Math.max(0, Math.min(Math.round(x), maxX)),
-            y: Math.max(0, Math.min(Math.round(y), maxY)),
+            x: Math.max(minX, Math.min(maxX, rx)),
+            y: Math.max(minY, Math.min(maxY, ry)),
         };
     }
 
@@ -200,6 +323,7 @@
         if (!url || !name) {
             return;
         }
+        invalidateVisibleBoundsCache();
         hiddenSticker.value = name;
         syncPressedState(btn);
         syncApplyDisabled();
@@ -234,6 +358,7 @@
             selectSticker(entryPick);
             didRunEntryAutoShow = true;
         } else {
+            invalidateVisibleBoundsCache();
             hiddenSticker.value = entryStickerName;
             syncApplyDisabled();
             overlay.onload = function () {
