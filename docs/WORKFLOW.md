@@ -388,7 +388,10 @@ If unclear, ask the AI to explain the step before coding.
 ```
 Explain step <n> of the implementation plan in simple terms without writing code.
 ```
-
+or
+```
+Explain each step of the implementation plan in simple terms without writing code and giving an example.
+```
 ---
 
 # 7.4 Generate test plan (AI)
