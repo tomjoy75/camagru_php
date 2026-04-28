@@ -158,6 +158,9 @@ class GalleryController
             unset($_SESSION['gallery_comment_error'], $_SESSION['gallery_comment_success']);
         }
 
+        $galleryCanInteract = isset($_SESSION['user_id']) && $_SESSION['user_id'] !== '';
+        $galleryViewerUserId = $galleryCanInteract ? (int) $_SESSION['user_id'] : null;
+
         extract(
             compact(
                 'detailLoadError',
@@ -175,7 +178,9 @@ class GalleryController
                 'facebookShareHref',
                 'linkedinShareHref',
                 'galleryCommentError',
-                'galleryCommentSuccess'
+                'galleryCommentSuccess',
+                'galleryCanInteract',
+                'galleryViewerUserId'
             ),
             EXTR_SKIP
         );

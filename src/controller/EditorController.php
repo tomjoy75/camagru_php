@@ -181,23 +181,15 @@ class EditorController
 
         $raw = $_SESSION['editor_temp_image'] ?? '';
         if ($raw === '') {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'No image to save.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('No image to save.');
+
             return;
         }
 
         $base = basename($raw);
         if ($base !== $raw || !self::isValidEditorTempFilename($base)) {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'Invalid image reference.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('Invalid image reference.');
+
             return;
         }
 
@@ -205,55 +197,35 @@ class EditorController
         $uploadPath = __DIR__ . '/../../public/uploads/' . $base;
 
         if (!is_file($tmpPath)) {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'Nothing to save (image is not in the editor workspace).'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('Nothing to save (image is not in the editor workspace).');
+
             return;
         }
 
         if (!self::isEditorWorkspaceComposeAuthorizedForSessionTemp()) {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'To save to your gallery, apply a sticker with Compose on the server first.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('To save to your gallery, apply a sticker with Compose on the server first.');
+
             return;
         }
 
         $uploadDir = __DIR__ . '/../../public/uploads';
         if (!is_dir($uploadDir)) {
             if (!mkdir($uploadDir, 0755, true)) {
-                extract(array_merge(self::editorViewContext(), [
-                    'errors' => ['save' => 'Could not prepare storage.'],
-                ]), EXTR_SKIP);
-                header('Content-Type: text/html; charset=utf-8');
-                $view = 'editor.php';
-                require __DIR__ . '/../views/layout.php';
+                self::renderEditorWithSaveError('Could not prepare storage.');
+
                 return;
             }
         }
 
         if (is_file($uploadPath)) {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'Save failed (file already exists).'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('Save failed (file already exists).');
+
             return;
         }
 
         if (!rename($tmpPath, $uploadPath)) {
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'Failed to move image to storage.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('Failed to move image to storage.');
+
             return;
         }
 
@@ -264,12 +236,8 @@ class EditorController
 
         if (!$inserted) {
             @rename($uploadPath, $tmpPath);
-            extract(array_merge(self::editorViewContext(), [
-                'errors' => ['save' => 'Failed to record image.'],
-            ]), EXTR_SKIP);
-            header('Content-Type: text/html; charset=utf-8');
-            $view = 'editor.php';
-            require __DIR__ . '/../views/layout.php';
+            self::renderEditorWithSaveError('Failed to record image.');
+
             return;
         }
 
@@ -352,13 +320,22 @@ class EditorController
         require __DIR__ . '/../views/layout.php';
     }
 
+    private static function renderEditorWithSaveError(string $message): void
+    {
+        extract(array_merge(self::editorViewContext(), [
+            'errors' => ['save' => $message],
+        ]), EXTR_SKIP);
+        header('Content-Type: text/html; charset=utf-8');
+        $view = 'editor.php';
+        require __DIR__ . '/../views/layout.php';
+    }
+
     /**
      * @return array{
      *   stickers: list<array<string, mixed>>,
      *   editorTempImage: string|null,
-     *   editorState: string,
-     *   savedImages: list<array<string, mixed>>,
      *   editorState: 'EMPTY'|'BASE_READY'|'COMPOSED_READY',
+     *   savedImages: list<array<string, mixed>>,
      *   editorPreviewSrc: string|null,
      *   canSaveEditorImage: bool,
      *   editorBaseNaturalW: int|null,
@@ -419,7 +396,6 @@ class EditorController
             'editorTempImage' => $editorTempImage,
             'editorState' => $editorState,
             'savedImages' => $savedImages,
-            'editorState' => $editorState,
             'editorPreviewSrc' => $editorPreviewSrc,
             'canSaveEditorImage' => $canSaveEditorImage,
             'editorBaseNaturalW' => $editorBaseNaturalW,

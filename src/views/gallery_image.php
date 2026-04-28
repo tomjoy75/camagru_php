@@ -14,8 +14,6 @@
         $src = $imageSrc ?? '';
         $createdRaw = $createdAt ?? '';
         $createdLabel = format_sqlite_utc_datetime_for_display((string) $createdRaw);
-        $sessionUserId = $_SESSION['user_id'] ?? null;
-        $canInteract = $sessionUserId !== null && $sessionUserId !== '';
         $imgId = (int) ($detailImageId ?? 0);
         $shareUrl = (string) ($shareTargetUrl ?? '');
         ?>
@@ -34,7 +32,7 @@
                 <dd class="inline ml-1"><?php echo htmlspecialchars($createdLabel, ENT_QUOTES, 'UTF-8'); ?></dd></div>
             <div><dt class="inline font-medium text-slate-100">Likes:</dt>
                 <dd id="gallery-like-count" class="inline ml-1" aria-live="polite" aria-atomic="true"><?php echo (int) ($likeCount ?? 0); ?></dd></div>
-            <?php if ($canInteract && $imgId >= 1): ?>
+            <?php if ($galleryCanInteract && $imgId >= 1): ?>
                 <div class="pt-2">
                     <form id="gallery-like-form" method="post" action="<?php echo htmlspecialchars('/gallery/like', ENT_QUOTES, 'UTF-8'); ?>" class="inline">
                         <input type="hidden" name="image_id" value="<?php echo $imgId; ?>">
@@ -97,7 +95,7 @@
         <?php if (!empty($galleryCommentSuccess)): ?>
             <p class="text-sm text-emerald-400 mt-2"><?php echo htmlspecialchars((string) $galleryCommentSuccess, ENT_QUOTES, 'UTF-8'); ?></p>
         <?php endif; ?>
-        <?php if ($canInteract && $imgId >= 1): ?>
+        <?php if ($galleryCanInteract && $imgId >= 1): ?>
             <form
                 id="comment-form"
                 method="post"
@@ -135,7 +133,7 @@
                         $cRaw = (string) ($cRow['created_at'] ?? '');
                         $cLabel = format_sqlite_utc_datetime_for_display($cRaw);
                         $cId = (int) ($cRow['id'] ?? 0);
-                        $canDeleteComment = $canInteract && $imgId >= 1 && $cId >= 1 && $cUserId > 0 && (int) $sessionUserId === $cUserId;
+                        $canDeleteComment = $galleryCanInteract && $imgId >= 1 && $cId >= 1 && $cUserId > 0 && (int) ($galleryViewerUserId ?? 0) === $cUserId;
                         ?>
                         <li class="border-b border-slate-800 pb-3 last:border-0">
                             <div class="font-medium text-slate-100">
@@ -164,7 +162,7 @@
                 </ul>
             <?php endif; ?>
         </section>
-        <?php if ($canInteract && $imgId >= 1): ?>
+        <?php if ($galleryCanInteract && $imgId >= 1): ?>
             <script src="/js/gallery_image_like.js" defer></script>
         <?php endif; ?>
         <script>
