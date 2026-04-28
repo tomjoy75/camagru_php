@@ -19,6 +19,11 @@ class EditorController
      * Cleared whenever the workspace temp is replaced or removed.
      */
     private const COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY = 'editor_workspace_compose_ok_basename';
+    private const LAST_COMPOSE_STICKER_SESSION_KEY = 'editor_last_compose_sticker';
+    private const LAST_COMPOSE_X_SESSION_KEY = 'editor_last_compose_x';
+    private const LAST_COMPOSE_Y_SESSION_KEY = 'editor_last_compose_y';
+    private const LAST_COMPOSE_SCALE_SESSION_KEY = 'editor_last_compose_scale';
+    private const LAST_COMPOSE_ANGLE_SESSION_KEY = 'editor_last_compose_angle_deg';
 
     public static function show(): void
     {
@@ -156,6 +161,7 @@ class EditorController
             if ($composedBase === (string) $result['filename'] && self::isValidEditorTempFilename($composedBase)) {
                 $_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY] = $composedBase;
             }
+            self::storeLastComposeSnapshot($sticker, (int) $x, (int) $y, $scale, $angle);
             unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
             self::setEditorWorkspaceState(self::EDITOR_STATE_COMPOSED_READY);
             header('Location: /editor');
@@ -260,7 +266,7 @@ class EditorController
         require_once __DIR__ . '/../repository/ImageRepository.php';
         $repo = new ImageRepository();
         $relativePath = 'uploads/' . $base;
-        $inserted = $repo->insert((int) $_SESSION['user_id'], $relativePath);
+        $inserted = $repo->insert((int) $_SESSION['user_id'], $relativePath, self::readLastComposeSnapshotFromSession());
 
         if (!$inserted) {
             @rename($uploadPath, $tmpPath);
@@ -276,6 +282,7 @@ class EditorController
         unset($_SESSION['editor_temp_image']);
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
         unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
+        self::clearLastComposeSnapshot();
         self::setEditorWorkspaceState(self::EDITOR_STATE_EMPTY);
 
         header('Location: /editor');
@@ -320,6 +327,7 @@ class EditorController
         self::setEditorWorkspaceState(self::EDITOR_STATE_EMPTY);
         unset($_SESSION[self::PENDING_STICKER_SESSION_KEY]);
         unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
+        self::clearLastComposeSnapshot();
 
         self::unlinkEditorTempFileIfValid($raw);
 
@@ -334,6 +342,7 @@ class EditorController
     private static function replaceEditorWorkspaceTemp(string $newFilename): void
     {
         unset($_SESSION[self::COMPOSE_AUTHORIZED_BASENAME_SESSION_KEY]);
+        self::clearLastComposeSnapshot();
         $previous = (string) ($_SESSION['editor_temp_image'] ?? '');
         $_SESSION['editor_temp_image'] = $newFilename;
         $newBase = basename((string) $newFilename);
@@ -528,5 +537,64 @@ class EditorController
     private static function isValidEditorTempFilename(string $name): bool
     {
         return (bool) preg_match('/\Aimg_[a-f0-9]{16}\.(png|jpg)\z/', $name);
+    }
+
+    private static function storeLastComposeSnapshot(string $sticker, int $x, int $y, float $scale, float $angle): void
+    {
+        require_once __DIR__ . '/../service/StickerService.php';
+        if (!StickerService::isAllowedStickerFilename($sticker)) {
+            self::clearLastComposeSnapshot();
+            return;
+        }
+
+        $_SESSION[self::LAST_COMPOSE_STICKER_SESSION_KEY] = basename($sticker);
+        $_SESSION[self::LAST_COMPOSE_X_SESSION_KEY] = $x;
+        $_SESSION[self::LAST_COMPOSE_Y_SESSION_KEY] = $y;
+        $_SESSION[self::LAST_COMPOSE_SCALE_SESSION_KEY] = $scale;
+        $_SESSION[self::LAST_COMPOSE_ANGLE_SESSION_KEY] = $angle;
+    }
+
+    /**
+     * @return array{
+     *   last_sticker_filename?: string|null,
+     *   last_compose_x?: int|null,
+     *   last_compose_y?: int|null,
+     *   last_compose_scale?: float|null,
+     *   last_compose_angle_deg?: float|null
+     * }|null
+     */
+    private static function readLastComposeSnapshotFromSession(): ?array
+    {
+        require_once __DIR__ . '/../service/StickerService.php';
+
+        $sticker = $_SESSION[self::LAST_COMPOSE_STICKER_SESSION_KEY] ?? null;
+        if (!is_string($sticker) || $sticker === '' || !StickerService::isAllowedStickerFilename($sticker)) {
+            return null;
+        }
+
+        $x = $_SESSION[self::LAST_COMPOSE_X_SESSION_KEY] ?? null;
+        $y = $_SESSION[self::LAST_COMPOSE_Y_SESSION_KEY] ?? null;
+        $scale = $_SESSION[self::LAST_COMPOSE_SCALE_SESSION_KEY] ?? null;
+        $angle = $_SESSION[self::LAST_COMPOSE_ANGLE_SESSION_KEY] ?? null;
+        if (!is_int($x) || !is_int($y) || !is_float($scale) || !is_float($angle)) {
+            return null;
+        }
+
+        return [
+            'last_sticker_filename' => basename($sticker),
+            'last_compose_x' => $x,
+            'last_compose_y' => $y,
+            'last_compose_scale' => $scale,
+            'last_compose_angle_deg' => $angle,
+        ];
+    }
+
+    private static function clearLastComposeSnapshot(): void
+    {
+        unset($_SESSION[self::LAST_COMPOSE_STICKER_SESSION_KEY]);
+        unset($_SESSION[self::LAST_COMPOSE_X_SESSION_KEY]);
+        unset($_SESSION[self::LAST_COMPOSE_Y_SESSION_KEY]);
+        unset($_SESSION[self::LAST_COMPOSE_SCALE_SESSION_KEY]);
+        unset($_SESSION[self::LAST_COMPOSE_ANGLE_SESSION_KEY]);
     }
 }

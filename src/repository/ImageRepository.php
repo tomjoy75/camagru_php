@@ -4,14 +4,32 @@
  */
 class ImageRepository
 {
-    public function insert(int $userId, string $imagePath): bool
+    /**
+     * @param array{
+     *   last_sticker_filename?: string|null,
+     *   last_compose_x?: int|null,
+     *   last_compose_y?: int|null,
+     *   last_compose_scale?: float|null,
+     *   last_compose_angle_deg?: float|null
+     * }|null $composeMeta
+     */
+    public function insert(int $userId, string $imagePath, ?array $composeMeta = null): bool
     {
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare('INSERT INTO images (user_id, image_path) VALUES (:user_id, :image_path)');
+        $stmt = $pdo->prepare(
+            'INSERT INTO images (user_id, image_path, last_sticker_filename, last_compose_x, last_compose_y, last_compose_scale, last_compose_angle_deg) '
+            . 'VALUES (:user_id, :image_path, :last_sticker_filename, :last_compose_x, :last_compose_y, :last_compose_scale, :last_compose_angle_deg)'
+        );
+        $meta = $composeMeta ?? [];
         return $stmt->execute([
             ':user_id' => $userId,
             ':image_path' => $imagePath,
+            ':last_sticker_filename' => $meta['last_sticker_filename'] ?? null,
+            ':last_compose_x' => $meta['last_compose_x'] ?? null,
+            ':last_compose_y' => $meta['last_compose_y'] ?? null,
+            ':last_compose_scale' => $meta['last_compose_scale'] ?? null,
+            ':last_compose_angle_deg' => $meta['last_compose_angle_deg'] ?? null,
         ]);
     }
 
