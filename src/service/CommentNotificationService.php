@@ -36,11 +36,13 @@ class CommentNotificationService
         try {
             $baseUrl = MailEnv::validatedAppBaseUrl();
             if ($baseUrl === null) {
+                error_log('camagru_notify_mail_skipped reason=missing_app_base_url image_id=' . $imageId . ' comment_id=' . $commentId);
                 return;
             }
 
             $from = MailEnv::validatedMailFrom();
             if ($from === null) {
+                error_log('camagru_notify_mail_skipped reason=missing_mail_from image_id=' . $imageId . ' comment_id=' . $commentId);
                 return;
             }
 
@@ -48,6 +50,7 @@ class CommentNotificationService
             $users = new UserRepository();
             $to = $users->getEmailByUserId($recipientUserId);
             if ($to === null || filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
+                error_log('camagru_notify_mail_skipped reason=invalid_recipient image_id=' . $imageId . ' comment_id=' . $commentId);
                 return;
             }
 
@@ -96,15 +99,28 @@ class CommentNotificationService
         int $commentId
     ): void {
         try {
+            if ($ownerUserId < 1) {
+                error_log('camagru_notify_mail_skipped reason=invalid_owner image_id=' . $imageId . ' comment_id=' . $commentId);
+                return;
+            }
             require_once __DIR__ . '/../repository/UserRepository.php';
             $users = new UserRepository();
             $enabled = $users->getNotificationsEnabledByUserId($ownerUserId);
             if (!self::shouldNotify($ownerUserId, $commenterUserId, $enabled)) {
+                if ($ownerUserId === $commenterUserId) {
+                    error_log('camagru_notify_mail_skipped reason=self_comment image_id=' . $imageId . ' comment_id=' . $commentId);
+                } else if ($enabled === 0) {
+                    error_log('camagru_notify_mail_skipped reason=preference_off image_id=' . $imageId . ' comment_id=' . $commentId);
+                } else {
+                    error_log('camagru_notify_mail_skipped reason=owner_missing_or_unknown_pref image_id=' . $imageId . ' comment_id=' . $commentId);
+                }
                 return;
             }
+            error_log('camagru_notify_mail_attempt image_id=' . $imageId . ' comment_id=' . $commentId);
             self::notifyImageOwnerOfComment($ownerUserId, $imageId, $commentId, $commenterUserId);
         } catch (Throwable $e) {
             // Comment success path must not depend on notifications
+            error_log('camagru_notify_mail_exception image_id=' . $imageId . ' comment_id=' . $commentId . ' stage=try_notify');
         }
     }
 }
