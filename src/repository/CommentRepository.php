@@ -60,7 +60,7 @@ class CommentRepository
      * Comments for one image, oldest first (tie-break by id).
      * Non-positive image id returns []. DB errors propagate to the caller.
      *
-     * @return list<array{id: int|string, content: string, created_at: string, username: string}>
+     * @return list<array{id: int|string, user_id: int|string, content: string, created_at: string, username: string}>
      */
     public function findByImageId(int $imageId): array
     {
@@ -70,7 +70,7 @@ class CommentRepository
         require_once __DIR__ . '/../db/Database.php';
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare(
-            'SELECT c.id AS id, c.content AS content, c.created_at AS created_at, u.username AS username '
+            'SELECT c.id AS id, c.user_id AS user_id, c.content AS content, c.created_at AS created_at, u.username AS username '
             . 'FROM comments c INNER JOIN users u ON u.id = c.user_id '
             . 'WHERE c.image_id = ? ORDER BY c.created_at ASC, c.id ASC'
         );
@@ -78,5 +78,29 @@ class CommentRepository
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return $rows ?: [];
+    }
+
+    /**
+     * Delete one comment owned by user and attached to image.
+     *
+     * @return bool true when one row was deleted, false otherwise
+     */
+    public function deleteByIdAndOwnerForImage(int $commentId, int $ownerUserId, int $imageId): bool
+    {
+        if ($commentId < 1 || $ownerUserId < 1 || $imageId < 1) {
+            return false;
+        }
+        require_once __DIR__ . '/../db/Database.php';
+        try {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->prepare(
+                'DELETE FROM comments WHERE id = ? AND user_id = ? AND image_id = ?'
+            );
+            $stmt->execute([$commentId, $ownerUserId, $imageId]);
+
+            return $stmt->rowCount() === 1;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 }

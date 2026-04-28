@@ -8,6 +8,7 @@ class GalleryController
 
     /** Fragment so redirect after comment POST scrolls the composer into view (it sits above the thread). */
     private const GALLERY_IMAGE_COMMENT_FORM_FRAGMENT = '#comment-form';
+    private const GALLERY_IMAGE_COMMENTS_FRAGMENT = '#comments';
 
     public static function show(): void
     {
@@ -320,6 +321,36 @@ class GalleryController
 
         $_SESSION['gallery_comment_success'] = 'Comment posted.';
         header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENT_FORM_FRAGMENT);
+        exit;
+    }
+
+    public static function deleteComment(): void
+    {
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_id'] === '') {
+            header('Location: /login');
+            exit;
+        }
+        $userId = (int) $_SESSION['user_id'];
+
+        $rawImageId = $_POST['image_id'] ?? null;
+        $rawCommentId = $_POST['comment_id'] ?? null;
+        $imageId = filter_var($rawImageId, FILTER_VALIDATE_INT);
+        $commentId = filter_var($rawCommentId, FILTER_VALIDATE_INT);
+        if ($imageId === false || $imageId < 1 || $commentId === false || $commentId < 1) {
+            $_SESSION['gallery_comment_error'] = 'Invalid delete request.';
+            header('Location: /gallery');
+            exit;
+        }
+
+        require_once __DIR__ . '/../repository/CommentRepository.php';
+        $commentRepo = new CommentRepository();
+        $deleted = $commentRepo->deleteByIdAndOwnerForImage((int) $commentId, $userId, (int) $imageId);
+        if ($deleted) {
+            $_SESSION['gallery_comment_success'] = 'Comment deleted.';
+        } else {
+            $_SESSION['gallery_comment_error'] = 'Could not delete comment.';
+        }
+        header('Location: /gallery/image?id=' . $imageId . self::GALLERY_IMAGE_COMMENTS_FRAGMENT);
         exit;
     }
 

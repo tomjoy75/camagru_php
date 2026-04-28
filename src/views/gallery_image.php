@@ -121,7 +121,7 @@
         <?php
         $commentRows = $comments ?? [];
         ?>
-        <section class="mt-6 border-t border-slate-700 pt-4" aria-label="Comments">
+        <section id="comments" class="mt-6 border-t border-slate-700 pt-4 scroll-mt-24" aria-label="Comments">
             <h2 class="text-lg font-semibold text-slate-100 mb-3">Comments</h2>
             <?php if (count($commentRows) === 0): ?>
                 <p class="text-sm text-slate-500">No comments yet</p>
@@ -130,9 +130,12 @@
                     <?php foreach ($commentRows as $cRow): ?>
                         <?php
                         $cUser = (string) ($cRow['username'] ?? '');
+                        $cUserId = (int) ($cRow['user_id'] ?? 0);
                         $cBody = (string) ($cRow['content'] ?? '');
                         $cRaw = (string) ($cRow['created_at'] ?? '');
                         $cLabel = format_sqlite_utc_datetime_for_display($cRaw);
+                        $cId = (int) ($cRow['id'] ?? 0);
+                        $canDeleteComment = $canInteract && $imgId >= 1 && $cId >= 1 && $cUserId > 0 && (int) $sessionUserId === $cUserId;
                         ?>
                         <li class="border-b border-slate-800 pb-3 last:border-0">
                             <div class="font-medium text-slate-100">
@@ -142,6 +145,20 @@
                             <div class="mt-1 whitespace-pre-wrap break-words">
                                 <?php echo htmlspecialchars($cBody, ENT_QUOTES, 'UTF-8'); ?>
                             </div>
+                            <?php if ($canDeleteComment): ?>
+                                <form
+                                    method="post"
+                                    action="<?php echo htmlspecialchars('/comments/delete', ENT_QUOTES, 'UTF-8'); ?>"
+                                    class="mt-2"
+                                >
+                                    <input type="hidden" name="image_id" value="<?php echo $imgId; ?>">
+                                    <input type="hidden" name="comment_id" value="<?php echo $cId; ?>">
+                                    <button
+                                        type="submit"
+                                        class="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+                                    >Delete</button>
+                                </form>
+                            <?php endif; ?>
                         </li>
                     <?php endforeach; ?>
                 </ul>
