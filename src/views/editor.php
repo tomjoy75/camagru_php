@@ -115,6 +115,12 @@ if ($editorState === 'EMPTY') {
             </div>
         <?php endif; ?>
 
+        <?php if ($isBaseReadyState && $canRenderWorkspaceImage): ?>
+            <p id="editor-help-preview-apply" class="text-sm text-slate-500">
+                Overlay previews placement in your browser; Apply sticker merges it on the server.
+            </p>
+        <?php endif; ?>
+
         <!-- Stickers -->
         <div class="bg-slate-900 rounded-lg border border-slate-700 p-4 shadow-md shadow-black/20">
             <p class="text-sm font-medium text-slate-400 mb-2">Stickers</p>
@@ -159,6 +165,7 @@ if ($editorState === 'EMPTY') {
                         id="editor-compose-submit"
                         class="rounded bg-cyan-600 px-4 py-2 text-white font-medium hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950<?php echo $composeSubmitDisabled ? ' opacity-50 cursor-not-allowed' : ''; ?>"
                         <?php echo $composeSubmitDisabled ? ' disabled aria-disabled="true"' : ''; ?>
+                        <?php if ($isBaseReadyState && $canRenderWorkspaceImage): ?> aria-describedby="editor-help-preview-apply"<?php endif; ?>
                     >
                         Apply sticker
                     </button>
@@ -234,7 +241,10 @@ if ($editorState === 'EMPTY') {
                     <?php if (isset($errors['save'])): ?>
                         <p class="text-red-400 text-sm"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
                     <?php endif; ?>
-                    <button type="submit" class="rounded bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950">Save image</button>
+                    <p id="editor-help-save-composed" class="text-sm text-slate-500 max-w-md">
+                        Save stores the workspace image from your last successful Apply on the server—not the draggable overlay alone.
+                    </p>
+                    <button type="submit" class="rounded bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950" aria-describedby="editor-help-save-composed">Save image</button>
                 </form>
             <?php elseif (isset($errors['save'])): ?>
                 <p class="text-red-400 text-sm self-center"><?php echo htmlspecialchars($errors['save'], ENT_QUOTES, 'UTF-8'); ?></p>
